@@ -1,15 +1,17 @@
 
+from os import path
 import unittest
 
+from cv2 import imwrite
 import numpy as np
 from pyrr import Matrix44
 from scipy.spatial import ConvexHull
-from skimage.io import imsave
+import trimesh
 
 from simple_3dviz import Scene, Mesh
 
 class TestMesh(unittest.TestCase):
-    def test_mesh(self):
+    def test_cube(self):
         points = np.array([[ 1,  1,  1],
                            [ 1,  1, -1],
                            [ 1, -1,  1],
@@ -23,23 +25,51 @@ class TestMesh(unittest.TestCase):
         normals = (np.ones((1, 3, 1)) * hull.equations[:, np.newaxis, :3]).reshape(-1, 3)
         colors = np.ones((len(vertices), 3))*[0.1, 0.5, 0.8]
 
-        perspective = Matrix44.perspective_projection(45.0, 1.0, 0.1, 1000.0)
-        lookat = Matrix44.look_at(
-            ( -2,  -2,  -2),
-            (0.0, 0.0, 0.0),
-            (0.0, 0.0, 1.0),
-        )
-        mvp = perspective * lookat
-
         s = Scene(size=(1024, 1024), background=(0, 0, 0, 0))
-        s._uniforms["light"][...] = [-0.5, 0.5, -2]
-        s._uniforms["mvp"][...] = mvp
         s.add(Mesh(vertices, normals, colors))
 
-        for i in range(360):
-            s._uniforms["mvp"][...] = mvp * Matrix44.from_z_rotation(i*np.pi/180)
+        for i in range(180):
             s.render()
-            imsave("/tmp/frame_{:03d}.png".format(i), s.frame)
+            imwrite("/tmp/frame_{:03d}.png".format(i), s.frame)
+            s.rotate_z(np.pi/90)
+            s.rotate_x(np.pi/180)
+            s.rotate_y(np.pi/360)
+            s.camera_position = s.camera_position - 0.01
+
+    def test_obj(self):
+        mesh = trimesh.load(path.join(path.dirname(__file__), "plane.obj"))
+        vertices = mesh.vertices[mesh.faces.ravel()]
+        normals = (np.ones((1, 3, 1)) * mesh.face_normals[:, np.newaxis, :]).reshape(-1, 3)
+        colors = np.ones((len(vertices), 3))*[0.1, 0.5, 0.8]
+
+        s = Scene(size=(1024, 1024), background=(0, 0, 0, 0))
+        s.add(Mesh(vertices, normals, colors))
+        s.rotate_x(np.pi/2)
+        s.camera_position = (-1, -1, -1)
+        for i in range(180):
+            s.render()
+            imwrite("/tmp/frame_{:03d}.png".format(i), s.frame)
+            s.rotate_y(np.pi/90)
+
+    def test_ply(self):
+        mesh = trimesh.load(path.join(path.dirname(__file__), "primitives.ply"))
+        vertices = mesh.vertices[mesh.faces.ravel()]
+        normals = (np.ones((1, 3, 1)) * mesh.face_normals[:, np.newaxis, :]).reshape(-1, 3)
+        colors = mesh.visual.vertex_colors[mesh.faces.ravel()][:, :3].astype(np.float32) / 255
+
+        s = Scene(size=(1024, 1024), background=(0, 0, 0, 0))
+        s.add(Mesh(vertices, normals, colors))
+        s.up_vector = (0, -1, 0)
+        s.camera_position = (1, 0.5, 1)
+        light_initial = s.light
+        r_light = np.sqrt(light_initial[0]**2 + light_initial[-1]**2)
+        for i in range(180):
+            theta = i*np.pi/90
+            r = np.sqrt(2)
+            s.camera_position = (r*np.cos(theta), 0.5, r*np.sin(theta))
+            s.light = (r_light*np.cos(theta), light_initial[1], r_light*np.sin(theta))
+            s.render()
+            imwrite("/tmp/frame_{:03d}.png".format(i), s.frame)
 
 
 if __name__ == "__main__":

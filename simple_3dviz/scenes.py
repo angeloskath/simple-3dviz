@@ -74,11 +74,90 @@ class Scene(BaseScene):
     def __init__(self, size=(256, 256), background=(1, 1, 1, 1), ctx=None):
         super(Scene, self).__init__(size, background, ctx)
 
+        self._camera = Matrix44.perspective_projection(45., 1., 0.1, 1000.)
+        self._camera_position = Vector3([-2., -2, -2])
+        self._camera_target = Vector3([0., 0, 0])
+        self._rotation = Matrix44.identity()
+        self._up_vector = Vector3([0, 0, 1])
+
         self._uniforms = dict(
-            time=0,
-            light=Vector3(dtype="float32"),
-            mvp=Matrix44(dtype="float32")
+            light=Vector3([-0.5, -0.8, -2], dtype="float32"),
+            mvp=self.mvp
         )
+
+    @property
+    def light(self):
+        return self._uniforms["light"].copy()
+
+    @light.setter
+    def light(self, l):
+        self._uniforms["light"][...] = l
+
+    @property
+    def mvp(self):
+        lookat = Matrix44.look_at(
+            self._camera_position,
+            self._camera_target,
+            self._up_vector
+        )
+        return (self._camera * lookat * self._rotation).astype(np.float32)
+
+    @property
+    def camera_matrix(self):
+        return self._camera.copy()
+
+    @camera_matrix.setter
+    def camera_matrix(self, cam):
+        self._camera[...] = cam
+        self._uniforms["mvp"] = self.mvp
+
+    @property
+    def camera_position(self):
+        return self._camera_position.copy()
+
+    @camera_position.setter
+    def camera_position(self, pos):
+        self._camera_position[...] = pos
+        self._uniforms["mvp"] = self.mvp
+
+    @property
+    def camera_target(self):
+        return self._camera_target.copy()
+
+    @camera_target.setter
+    def camera_target(self, target):
+        self._camera_target[...] = target
+        self._uniforms["mvp"] = self.mvp
+
+    @property
+    def up_vector(self):
+        return self._up_vector.copy()
+
+    @up_vector.setter
+    def up_vector(self, up):
+        self._up_vector[...] = up
+        self._uniforms["mvp"] = self.mvp
+
+    @property
+    def rotation(self):
+        return self._rotation.copy()
+
+    @rotation.setter
+    def rotation(self, rot):
+        self._rotation[...] = rot
+        self._uniforms["mvp"] = self.mvp
+
+    def rotate_x(self, angle):
+        self._rotation *= Matrix44.from_x_rotation(angle)
+        self._uniforms["mvp"] = self.mvp
+
+    def rotate_y(self, angle):
+        self._rotation *= Matrix44.from_y_rotation(angle)
+        self._uniforms["mvp"] = self.mvp
+
+    def rotate_z(self, angle):
+        self._rotation *= Matrix44.from_z_rotation(angle)
+        self._uniforms["mvp"] = self.mvp
 
     @property
     def uniforms(self):
