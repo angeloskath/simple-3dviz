@@ -91,3 +91,71 @@ class Circle(Renderable):
 
     def render(self):
         self._vao.render()
+
+
+class Mesh(Renderable):
+    def __init__(self, vertices, normals, colors):
+        self._vertices = vertices
+        self._normals = normals
+        self._colors = colors
+
+        self._prog = None
+        self._vao = None
+
+    def init(self, ctx):
+        self._prog = ctx.program(
+            vertex_shader="""
+                #version 330
+
+                uniform mat4 mvp;
+                in vec3 in_vert;
+                in vec3 in_norm;
+                in vec3 in_color;
+                out vec3 v_vert;
+                out vec3 v_norm;
+                out vec3 v_color;
+
+                void main() {
+                    v_vert = in_vert;
+                    v_norm = in_norm;
+                    v_color = in_color;
+                    gl_Position = mvp * vec4(v_vert, 1.0);
+                }
+            """,
+            fragment_shader="""
+                #version 330
+
+                uniform vec3 light;
+                in vec3 v_vert;
+                in vec3 v_norm;
+                in vec3 v_color;
+
+                out vec4 f_color;
+
+                void main() {
+                    float lum = dot(normalize(v_norm), normalize(v_vert - light));
+                    lum = acos(lum) / 3.14159265;
+                    lum = clamp(lum, 0.0, 1.0);
+
+                    f_color = vec4(v_color * lum, 1.0);
+                }
+            """
+        )
+        vbo = ctx.buffer(np.hstack([
+            self._vertices,
+            self._normals,
+            self._colors
+        ]).astype(np.float32).tobytes())
+        self._vao = ctx.simple_vertex_array(
+            self._prog,
+            vbo,
+            "in_vert", "in_norm", "in_color"
+        )
+
+    def render(self):
+        self._vao.render()
+
+    def update_uniforms(self, uniforms):
+        for k, v in uniforms:
+            if k in ["light", "mvp"]:
+                self._prog[k].write(v.tobytes())
