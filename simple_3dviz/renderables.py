@@ -1,7 +1,7 @@
 """Renderables represent objects that can be rendered in a scene."""
 
 import numpy as np
-
+import trimesh
 
 from .programs import uniform_value
 
@@ -159,3 +159,19 @@ class Mesh(Renderable):
         for k, v in uniforms:
             if k in ["light", "mvp"]:
                 self._prog[k].write(v.tobytes())
+
+    @classmethod
+    def from_file(cls, filepath, color=None, use_vertex_normals=False):
+        mesh = trimesh.load(filepath)
+        vertices = mesh.vertices[mesh.faces.ravel()]
+        if use_vertex_normals:
+            normals = mesh.vertex_normals[mesh.faces.ravel()]
+        else:
+            normals = np.repeat(mesh.face_normals, 3, axis=0)
+        if color is not None:
+            colors = np.ones_like(vertices) * color
+        elif mesh.visual is not None:
+            colors = mesh.visual.vertex_colors[mesh.faces.ravel()]
+            colors = colors[:, :3].astype(np.float32)/255
+
+        return cls(vertices, normals, colors)

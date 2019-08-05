@@ -37,13 +37,8 @@ class TestMesh(unittest.TestCase):
             s.camera_position = s.camera_position - 0.01
 
     def test_obj(self):
-        mesh = trimesh.load(path.join(path.dirname(__file__), "plane.obj"))
-        vertices = mesh.vertices[mesh.faces.ravel()]
-        normals = (np.ones((1, 3, 1)) * mesh.face_normals[:, np.newaxis, :]).reshape(-1, 3)
-        colors = np.ones((len(vertices), 3))*[0.1, 0.5, 0.8]
-
         s = Scene(size=(1024, 1024), background=(0, 0, 0, 0))
-        s.add(Mesh(vertices, normals, colors))
+        s.add(Mesh.from_file(path.join(path.dirname(__file__), "plane.obj")))
         s.rotate_x(np.pi/2)
         s.camera_position = (-1, -1, -1)
         for i in range(180):
@@ -52,13 +47,8 @@ class TestMesh(unittest.TestCase):
             s.rotate_y(np.pi/90)
 
     def test_ply(self):
-        mesh = trimesh.load(path.join(path.dirname(__file__), "primitives.ply"))
-        vertices = mesh.vertices[mesh.faces.ravel()]
-        normals = (np.ones((1, 3, 1)) * mesh.face_normals[:, np.newaxis, :]).reshape(-1, 3)
-        colors = mesh.visual.vertex_colors[mesh.faces.ravel()][:, :3].astype(np.float32) / 255
-
         s = Scene(size=(1024, 1024), background=(0, 0, 0, 0))
-        s.add(Mesh(vertices, normals, colors))
+        s.add(Mesh.from_file(path.join(path.dirname(__file__), "primitives.ply")))
         s.up_vector = (0, -1, 0)
         s.camera_position = (1, 0.5, 1)
         light_initial = s.light
