@@ -32,6 +32,10 @@ class BaseScene(object):
         self._renderables = dict()
 
     @property
+    def size(self):
+        return self._ctx.fbo.size
+
+    @property
     def background(self):
         return self._background
 

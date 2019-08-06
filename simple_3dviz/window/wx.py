@@ -41,6 +41,7 @@ class Window(BaseWindow):
 
             self.Bind(wx.EVT_PAINT, self._on_paint)
             self.Bind(wx.EVT_TIMER, self._on_tick, self._ticker)
+            self.Bind(wx.EVT_MOUSE_EVENTS, self._on_mouse)
 
         def _on_paint(self, event):
             self.SetCurrent(self._context)
@@ -59,16 +60,28 @@ class Window(BaseWindow):
         def _on_tick(self, event):
             if self._window._behave(event):
                 self.Refresh()
+            self._window._mouse.wheel_rotation = 0
+
+        def _on_mouse(self, event):
+            state = wx.GetMouseState()
+            self._window._mouse.location = (state.GetX(), state.GetY())
+            self._window._mouse.left_pressed = state.LeftIsDown()
+            if abs(event.GetWheelRotation()) > 0:
+                self._window._mouse.wheel_rotation += (
+                    event.GetWheelRotation()/event.GetWheelDelta()
+                )
 
     def __init__(self, size=(512, 512)):
         super(Window, self).__init__(size)
         self._scene = None
+        self._mouse = Behaviour.Mouse(None, None, None)
 
     def _behave(self, event):
         # Make the behaviour parameters
         params = Behaviour.Params(
             self,
-            self._scene
+            self._scene,
+            self._mouse
         )
 
         # Run the behaviours
