@@ -40,7 +40,9 @@ def get_extensions():
 def get_install_requirements():
     return [
         "moderngl",
-        "numpy"
+        "numpy",
+        "trimesh==2.38.42",
+        "pyrr"
     ]
 
 

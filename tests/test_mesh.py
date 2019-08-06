@@ -4,7 +4,6 @@ import unittest
 
 from cv2 import imwrite
 import numpy as np
-from pyrr import Matrix44
 from scipy.spatial import ConvexHull
 import trimesh
 
