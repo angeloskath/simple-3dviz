@@ -31,7 +31,9 @@ class Window(BaseWindow):
                 attribList=[
                     wx.glcanvas.WX_GL_CORE_PROFILE,
                     wx.glcanvas.WX_GL_RGBA,
-                    wx.glcanvas.WX_GL_DOUBLEBUFFER
+                    wx.glcanvas.WX_GL_DOUBLEBUFFER,
+                    wx.glcanvas.WX_GL_DEPTH_SIZE,
+                    24
                 ]
             )
             self._window = window
