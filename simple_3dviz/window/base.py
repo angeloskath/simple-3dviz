@@ -14,6 +14,16 @@ class BaseWindow(object):
 
 class Behaviour(object):
     class Params(object):
+        """The parameters provided by the window to the behaviours.
+
+        Attributes
+        ----------
+            window: A reference to the window object
+            scene: A reference to the scene
+            stop_propagation: bool, when set no more behaviours will be run
+            done: bool, when set remove this behaviour from the list
+            refresh: bool, when set make sure to redraw the window
+        """
         def __init__(self, window, scene):
             self.window = window
             self.scene = scene

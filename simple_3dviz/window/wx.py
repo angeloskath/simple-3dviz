@@ -66,15 +66,19 @@ class Window(BaseWindow):
 
     def _behave(self, event):
         # Make the behaviour parameters
-        params = Behaviour.Params(self, self._scene)
+        params = Behaviour.Params(
+            self,
+            self._scene
+        )
 
         # Run the behaviours
         remove = []
         for i, b in enumerate(self._behaviours):
             b.behave(params)
-            if b.done:
+            if params.done:
                 remove.append(i)
-            if b.stop_propagation:
+                params.done = False
+            if params.stop_propagation:
                 break
 
         # Remove the ones that asked to be removed

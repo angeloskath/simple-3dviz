@@ -32,6 +32,17 @@ class BaseScene(object):
         self._renderables = dict()
 
     @property
+    def background(self):
+        return self._background
+
+    @background.setter
+    def background(self, v):
+        b = list(self._background)
+        for i in range(len(v)):
+            b[i] = v[i]
+        self._background = tuple(b)
+
+    @property
     def renderables(self):
         return self._renderables.values()
 
