@@ -20,14 +20,15 @@ class BaseScene(object):
     def __init__(self, size=(256, 256), background=(1, 1, 1, 1), ctx=None):
         if ctx is None:
             self._ctx = moderngl.create_standalone_context()
+            self._framebuffer = self._ctx.framebuffer(
+                self._ctx.renderbuffer(size),
+                self._ctx.depth_renderbuffer(size)
+            )
         else:
             self._ctx = ctx
-        self._framebuffer = self._ctx.framebuffer(
-            self._ctx.renderbuffer(size),
-            self._ctx.depth_renderbuffer(size)
-        )
-        self._background = background
+            self._framebuffer = None
 
+        self._background = background
         self._renderables = dict()
 
     @property
@@ -56,7 +57,8 @@ class BaseScene(object):
             r.update_uniforms(uniforms)
 
         # Render the scene
-        self._framebuffer.use()
+        if self._framebuffer is not None:
+            self._framebuffer.use()
         self._ctx.enable(moderngl.DEPTH_TEST)
         self._ctx.clear(*self._background)
         for r in self.renderables:
@@ -64,10 +66,15 @@ class BaseScene(object):
 
     @property
     def frame(self):
-        return np.frombuffer(
-            self._framebuffer.read(components=4),
-            dtype=np.uint8
-        ).reshape(*(self._framebuffer.size + (4,)))
+        if self._framebuffer is not None:
+            return np.frombuffer(
+                self._framebuffer.read(components=4),
+                dtype=np.uint8
+            ).reshape(*(self._framebuffer.size + (4,)))
+        else:
+            raise RuntimeError(("This scene is rendering on a framebuffer "
+                                "managed by someone else (gui perhaphs). "
+                                "Access the frame from there."))
 
 
 class Scene(BaseScene):
