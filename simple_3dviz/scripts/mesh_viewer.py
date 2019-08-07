@@ -1,9 +1,8 @@
-#!/usr/bin/env python
 
 import argparse
 
-from simple_3dviz import Mesh
-from simple_3dviz.window import show
+from .. import Mesh
+from ..window import show
 
 
 def int_tuple(n):
@@ -24,7 +23,7 @@ def f_tuple(n):
     return inner
 
 
-def main(argv):
+def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Visualize meshes with simple_3dviz"
     )
@@ -76,7 +75,3 @@ def main(argv):
         camera_position=args.camera_position, camera_target=args.camera_target,
         up_vector=args.up, light=args.light
     )
-
-
-if __name__ == "__main__":
-    main(None)

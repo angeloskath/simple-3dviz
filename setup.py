@@ -72,6 +72,11 @@ def setup_package():
         packages=find_packages(exclude=["docs", "tests", "scripts"]),
         install_requires=get_install_requirements(),
         ext_modules=get_extensions(),
+        entry_points={
+            "gui_scripts": [
+                "mesh_viewer = simple_3dviz.scripts.mesh_viewer:main"
+            ]
+        }
     )
 
 
