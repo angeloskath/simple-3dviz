@@ -245,7 +245,7 @@ class Spherecloud(Renderable):
             fragment_shader="""
                 #version 330
 
-                uniform mat4 mv;
+                uniform mat4 vm;
                 uniform vec3 light;
                 in vec3 v_vertex;
                 in vec3 v_center;
@@ -254,7 +254,6 @@ class Spherecloud(Renderable):
                 out vec4 f_color;
 
                 void main() {
-                    mat4 vm = inverse(mv);
                     vec3 camera_position = vm[3].xyz / vm[3].w;
                     vec3 center_ray = v_center - camera_position;
                     vec3 ray = normalize(v_vertex - camera_position);
@@ -292,5 +291,5 @@ class Spherecloud(Renderable):
 
     def update_uniforms(self, uniforms):
         for k, v in uniforms:
-            if k in ["light", "mvp", "mv"]:
+            if k in ["light", "mvp", "vm"]:
                 self._prog[k].write(v.tobytes())

@@ -115,6 +115,7 @@ class Scene(BaseScene):
             up_vector=self._up_vector,
 
             # derivative uniforms
+            vm=self.vm,
             mv=self.mv,
             mvp=self.mvp
         )
@@ -122,14 +123,11 @@ class Scene(BaseScene):
     def _update_uniforms(self):
         self._uniforms["mvp"] = self.mvp
         self._uniforms["mv"] = self.mv
+        self._uniforms["vm"] = self.vm
 
     @property
-    def light(self):
-        return self._light.copy()
-
-    @light.setter
-    def light(self, l):
-        self._light[...] = l
+    def vm(self):
+        return self.mv.inverse
 
     @property
     def mv(self):
@@ -142,6 +140,14 @@ class Scene(BaseScene):
     @property
     def mvp(self):
         return (self._camera * self.mv).astype(np.float32)
+
+    @property
+    def light(self):
+        return self._light.copy()
+
+    @light.setter
+    def light(self, l):
+        self._light[...] = l
 
     @property
     def camera_matrix(self):

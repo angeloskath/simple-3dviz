@@ -2,7 +2,7 @@
 import time
 
 import numpy as np
-from pyrr import matrix44, vector
+from pyrr import Vector3, matrix44, vector
 
 from .base import Behaviour
 
@@ -56,28 +56,25 @@ class Rotate(Behaviour):
 
 
 class MouseRotate(Behaviour):
-    """Rotate the view based using the mouse when left button is pressed.
-
-    Arguments
-    ---------
-        axis_x: {0, 1, 2}, Which axis to rotate when dragging along x
-        axis_y: {0, 1, 2}, Which axis to rotate when dragging along y
-        dir_x: {1, -1}, Which direction to rotate when dragging along x
-        dir_y: {1, -1}, Which direction to rotate when dragging along y
-    """
-    def __init__(self, axis_x=2, axis_y=0, dir_x=1, dir_y=1):
+    """Rotate the view based using the mouse when left button is pressed."""
+    def __init__(self):
         self._start = None
         self._rot = None
-        self._axis_x = [0, 0, 0]
-        self._axis_y = [0, 0, 0]
-        self._axis_x[axis_x] = float(dir_x)
-        self._axis_y[axis_y] = float(dir_y)
+        self._camera_right = None
+        self._camera_up = None
 
     def behave(self, params):
         if params.mouse.left_pressed:
             if self._start is None:
                 self._start = params.mouse.location
                 self._rot = params.scene.rotation
+                cam_position, w = Vector3.from_vector4(params.scene.vm[3])
+                cam_position /= w
+                cam_target = params.scene.camera_target
+                cam_up = params.scene.up_vector
+                inv_cam_dir = vector.normalize(cam_position-cam_target)
+                self._camera_right = np.cross(cam_up, inv_cam_dir)
+                self._camera_up = np.cross(inv_cam_dir, self._camera_right)
             else:
                 size = params.scene.size
                 end = params.mouse.location
@@ -85,11 +82,11 @@ class MouseRotate(Behaviour):
                 deltaY = float(end[1] - self._start[1])/size[1]
 
                 rx = matrix44.create_from_axis_rotation(
-                    axis=self._axis_x,
+                    axis=self._camera_up,
                     theta=deltaX * np.pi
                 )
                 ry = matrix44.create_from_axis_rotation(
-                    axis=self._axis_y,
+                    axis=self._camera_right,
                     theta=deltaY * np.pi
                 )
                 params.scene.rotation = self._rot * rx * ry
