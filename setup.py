@@ -74,7 +74,8 @@ def setup_package():
         ext_modules=get_extensions(),
         entry_points={
             "gui_scripts": [
-                "mesh_viewer = simple_3dviz.scripts.mesh_viewer:main"
+                "mesh_viewer = simple_3dviz.scripts.mesh_viewer:main",
+                "func_viewer = simple_3dviz.scripts.func_viewer:main"
             ]
         }
     )

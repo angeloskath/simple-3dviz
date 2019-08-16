@@ -14,7 +14,7 @@ class Renderable(object):
 
     def update_uniforms(self, uniforms):
         """Update any uniforms that are provided from somewhere else.
-        
+
         The object is free to update its own programs' uniform values as well.
         Also since the program can be shared, the uniforms might be updated
         from another object.
@@ -173,6 +173,54 @@ class Mesh(Renderable):
         elif mesh.visual is not None:
             colors = mesh.visual.vertex_colors[mesh.faces.ravel()]
             colors = colors[:, :3].astype(np.float32)/255
+
+        return cls(vertices, normals, colors)
+
+    @classmethod
+    def from_xyz(cls, X, Y, Z, colormap=None):
+        def gray(x):
+            return np.ones((x.shape[0], 3))*x[:, np.newaxis]
+
+        def normalize(x):
+            xmin = x.min()
+            xmax = x.max()
+            return 2*(x-xmin)/(xmax-xmin) - 1
+
+        def idx(i, j, x):
+            return i*x.shape[1] + j
+
+        def normal(a, b, c):
+            return np.cross(a-b, c-b)
+
+        # Normalize dimensions in [-1, 1]
+        x = normalize(X)
+        y = normalize(Y)
+        z = normalize(Z)
+
+        # Create faces by triangulating each quad
+        faces = []
+        for i in range(x.shape[0]-1):
+            for j in range(y.shape[1]-1):
+                # i, j; i, j+1; i+1; j+1
+                # i, j; i+1, j; i+1; j+1
+                faces.extend([
+                    idx(i, j, x),
+                    idx(i, j+1, x),
+                    idx(i+1, j+1, x),
+                    idx(i, j, x),
+                    idx(i+1, j+1, x),
+                    idx(i+1, j, x)
+                ])
+
+        vertices = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T[faces]
+        colors = (
+            colormap(vertices[:, -1])[:, :3]
+            if colormap else gray(vertices[:, -1])
+        )
+        normals = np.repeat([
+            normal(vertices[i], vertices[i+1], vertices[i+2])
+            for i in range(0, vertices.shape[0], 3)
+        ], 3, axis=0)
 
         return cls(vertices, normals, colors)
 

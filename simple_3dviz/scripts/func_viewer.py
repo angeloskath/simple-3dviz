@@ -1,0 +1,113 @@
+
+import argparse
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from .. import Mesh
+from ..window import show
+
+
+def int_tuple(n):
+    def inner(x):
+        t = tuple(int(xi) for xi in x.split(","))
+        if len(t) != n:
+            raise ValueError("Expected a {}-tuple".format(n))
+        return t
+    return inner
+
+
+def f_tuple(n):
+    def inner(x):
+        t = tuple(float(xi) for xi in x.split(","))
+        if len(t) != n:
+            raise ValueError("Expected a {}-tuple".format(n))
+        return t
+    return inner
+
+
+def get_function(func, xlim, ylim, n, cmap="viridis"):
+    x = np.linspace(xlim[0], xlim[1], n)
+    y = np.linspace(ylim[0], ylim[1], n)
+    X, Y = np.meshgrid(x, y)
+    Z = eval(func, dict(x=X, y=Y, np=np))
+
+    return Mesh.from_xyz(X, Y, Z, colormap=plt.cm.get_cmap(cmap))
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Visualize functions with simple_3dviz"
+    )
+    parser.add_argument(
+        "function",
+        default="The function to be viewed as a python string (use x, y and np)"
+    )
+    parser.add_argument(
+        "--n_points",
+        type=int,
+        default=100,
+        help="How many points per dimension"
+    )
+    parser.add_argument(
+        "--xlim",
+        type=f_tuple(2),
+        default=(-1., 1.),
+        help="The limits for the x axis"
+    )
+    parser.add_argument(
+        "--ylim",
+        type=f_tuple(2),
+        default=(-1., 1.),
+        help="The limits for the y axis"
+    )
+    parser.add_argument(
+        "--colormap",
+        default="viridis",
+        help="Set the matplotlib colormap"
+    )
+    parser.add_argument(
+        "--size",
+        type=int_tuple(2),
+        default=(512, 512),
+        help="The size of the window"
+    )
+    parser.add_argument(
+        "--background", "-b",
+        type=f_tuple(4),
+        default=(0.7, 0.7, 0.7, 1),
+        help="The rgba background color"
+    )
+    parser.add_argument(
+        "--camera_position", "-c",
+        type=f_tuple(3),
+        default=(3, 3, 3),
+        help="The position of the camera"
+    )
+    parser.add_argument(
+        "--camera_target", "-t",
+        type=f_tuple(3),
+        default=(0, 0, 0),
+        help="The target of the camera"
+    )
+    parser.add_argument(
+        "--up",
+        type=f_tuple(3),
+        default=(0, 0, 1),
+        help="The up vector"
+    )
+    parser.add_argument(
+        "--light",
+        type=f_tuple(3),
+        default=(-0.5, -0.8, -2)
+    )
+
+    args = parser.parse_args(argv)
+
+    show(
+        get_function(args.function, args.xlim, args.ylim,
+                     args.n_points, args.colormap),
+        size=args.size, background=args.background, title="Func Viewer",
+        camera_position=args.camera_position, camera_target=args.camera_target,
+        up_vector=args.up, light=args.light
+    )
