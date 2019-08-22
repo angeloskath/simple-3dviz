@@ -7,8 +7,8 @@ except ImportError:
 
 
 from ..renderables import Renderable
-from .base import Behaviour
-from .behaviours import SceneInit, Rotate, MouseRotate, MouseZoom
+from ..behaviours import Behaviour, SceneInit
+from ..behaviours.mouse import MouseRotate, MouseZoom
 
 
 def simple_window(init, size=(512, 512)):
@@ -26,6 +26,7 @@ def simple_window(init, size=(512, 512)):
     w = Window(size)
     w.add_behaviours([SceneInit(init), MouseRotate(), MouseZoom()])
     return w
+
 
 def show(renderables, size=(512, 512), background=(1,)*4, title="Scene",
          camera_position=(-2, -2, -2), camera_target=(0, 0, 0),

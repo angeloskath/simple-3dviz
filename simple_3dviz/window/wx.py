@@ -3,8 +3,9 @@ import moderngl
 import wx
 import wx.glcanvas
 
-from .base import BaseWindow, Behaviour
+from ..behaviours import Behaviour
 from ..scenes import Scene
+from .base import BaseWindow
 
 class Window(BaseWindow):
     _FRAME_STYLE = wx.DEFAULT_FRAME_STYLE & ~(

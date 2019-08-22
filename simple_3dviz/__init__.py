@@ -6,5 +6,5 @@ __url__ = ""
 __license__ = "MIT"
 __version__ = "0.1"
 
-from .renderables import Circle, Mesh, Spherecloud
+from .renderables import Mesh, Spherecloud
 from .scenes import Scene
