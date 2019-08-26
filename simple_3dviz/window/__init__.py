@@ -30,7 +30,7 @@ def simple_window(init, size=(512, 512)):
 
 def show(renderables, size=(512, 512), background=(1,)*4, title="Scene",
          camera_position=(-2, -2, -2), camera_target=(0, 0, 0),
-         up_vector=(0, 0, 1), light=None):
+         up_vector=(0, 0, 1), light=None, behaviours=[]):
     """Creates a simple window that displays the renderables.
 
     Arguments
@@ -62,4 +62,5 @@ def show(renderables, size=(512, 512), background=(1,)*4, title="Scene",
             scene.light = light
 
     w = simple_window(init, size=size)
+    w.add_behaviours(behaviours)
     w.show(title)
