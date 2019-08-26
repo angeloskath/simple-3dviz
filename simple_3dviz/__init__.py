@@ -8,3 +8,4 @@ __version__ = "0.1"
 
 from .renderables import Mesh, Spherecloud
 from .scenes import Scene
+from .utils import render

@@ -1,14 +1,14 @@
-from PIL import Image
-
 from .behaviours import Behaviour
+from .renderables import Renderable
 from .scenes import Scene
 
 
 try:
     import cv2
+    import numpy as np
 
     def save_frame(path, frame):
-        channels = frame.shape[3]
+        channels = frame.shape[-1]
         if channels == 1:
             cv2.imwrite(path, frame)
 
@@ -51,9 +51,14 @@ def render(renderables, behaviours, n_frames, size=(512, 512),
     scene.camera_position = camera_position
     scene.camera_target = camera_target
     scene.up_vector = up_vector
-    scene.light = light
+    scene.light = light if light is not None else camera_position
 
     # Add the primitives
+    if not isinstance(renderables, (list, tuple)):
+        renderables = [renderables]
+    if not all(isinstance(r, Renderable) for r in renderables):
+        raise ValueError(("render() expects one or more renderables as "
+                          "parameters not {}").format(renderables))
     for r in renderables:
         scene.add(r)
 
