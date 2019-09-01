@@ -4,7 +4,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .. import Mesh
+from .. import Mesh, Lines
 from ..window import show
 
 
@@ -33,6 +33,24 @@ def get_function(func, xlim, ylim, n, cmap="viridis"):
     Z = eval(func, dict(x=X, y=Y, np=np))
 
     return Mesh.from_xyz(X, Y, Z, colormap=plt.cm.get_cmap(cmap))
+
+
+def get_axes():
+    return Lines(
+        [[-1, -1, -1],
+         [ 1, -1, -1],
+         [-1, -1, -1],
+         [-1,  1, -1],
+         [-1, -1, -1],
+         [-1, -1,  1]],
+        [[0.5, 0.5, 0.5, 1.],
+         [0.5, 0.5, 0.5, 1.],
+         [0.5, 0.5, 0.5, 1.],
+         [0.5, 0.5, 0.5, 1.],
+         [0.5, 0.5, 0.5, 1.],
+         [0.5, 0.5, 0.5, 1.]],
+        width=0.01
+    )
 
 
 def main(argv=None):
@@ -101,12 +119,20 @@ def main(argv=None):
         type=f_tuple(3),
         default=(-0.5, -0.8, -2)
     )
+    parser.add_argument(
+        "--no_axes",
+        action="store_false",
+        dest="axes",
+        help="Do not show the axes"
+    )
 
     args = parser.parse_args(argv)
 
+    mesh = get_function(args.function, args.xlim, args.ylim,
+                        args.n_points, args.colormap)
+    axes = get_axes()
     show(
-        get_function(args.function, args.xlim, args.ylim,
-                     args.n_points, args.colormap),
+        [mesh] + ([axes] if args.axes else []),
         size=args.size, background=args.background, title="Func Viewer",
         camera_position=args.camera_position, camera_target=args.camera_target,
         up_vector=args.up, light=args.light
