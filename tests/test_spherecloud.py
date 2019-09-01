@@ -6,8 +6,8 @@ import numpy as np
 
 from simple_3dviz import Scene, Spherecloud
 
-class TestCircle(unittest.TestCase):
-    def test_circle(self):
+class TestSpherecloud(unittest.TestCase):
+    def test_spherecloud(self):
         centers = np.random.randn(5000, 3)
         colors = np.ones((5000, 4))*[0.8, 0.1, 0.8, 1.0]
         sizes = np.random.rand(5000)*0.02 + 0.01
