@@ -72,6 +72,13 @@ class Mesh(Renderable):
             if k in ["light", "mvp"]:
                 self._prog[k].write(v.tobytes())
 
+    @staticmethod
+    def _triangle_normals(triangles):
+        triangles = triangles.reshape(-1, 3, 3)
+        ba = triangles[:, 0] - triangles[:, 1]
+        bc = triangles[:, 2] - triangles[:, 1]
+        return np.cross(ba, bc, axis=-1)
+
     @classmethod
     def from_file(cls, filepath, color=None, use_vertex_normals=False):
         mesh = trimesh.load(filepath)
@@ -90,6 +97,7 @@ class Mesh(Renderable):
 
     @classmethod
     def from_xyz(cls, X, Y, Z, colormap=None):
+        X, Y, Z = list(map(np.asarray, [X, Y, Z]))
         def gray(x):
             return np.ones((x.shape[0], 3))*x[:, np.newaxis]
 
@@ -100,9 +108,6 @@ class Mesh(Renderable):
 
         def idx(i, j, x):
             return i*x.shape[1] + j
-
-        def normal(a, b, c):
-            return np.cross(a-b, c-b)
 
         # Normalize dimensions in [-1, 1]
         x = normalize(X)
@@ -129,9 +134,18 @@ class Mesh(Renderable):
             colormap(vertices[:, -1])[:, :3]
             if colormap else gray(vertices[:, -1])
         )
-        normals = np.repeat([
-            normal(vertices[i], vertices[i+1], vertices[i+2])
-            for i in range(0, vertices.shape[0], 3)
-        ], 3, axis=0)
+        normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
+
+        return cls(vertices, normals, colors)
+
+    @classmethod
+    def from_faces(cls, vertices, faces, colors):
+        vertices, faces, colors = list(map(
+            np.asarray,
+            [vertices, faces, colors]
+        ))
+        vertices = vertices[faces].reshape(-1, 3)
+        normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
+        colors = colors[faces].reshape(-1, 3)
 
         return cls(vertices, normals, colors)
