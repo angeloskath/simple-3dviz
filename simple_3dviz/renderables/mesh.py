@@ -75,7 +75,7 @@ class Mesh(Renderable):
     @staticmethod
     def _triangle_normals(triangles):
         triangles = triangles.reshape(-1, 3, 3)
-        ba = triangles[:, 0] - triangles[:, 1]
+        ba = triangles[:, 1] - triangles[:, 0]
         bc = triangles[:, 2] - triangles[:, 1]
         return np.cross(ba, bc, axis=-1)
 
@@ -121,12 +121,12 @@ class Mesh(Renderable):
                 # i, j; i, j+1; i+1; j+1
                 # i, j; i+1, j; i+1; j+1
                 faces.extend([
-                    idx(i, j, x),
+                    idx(i+1, j+1, x),
                     idx(i, j+1, x),
-                    idx(i+1, j+1, x),
                     idx(i, j, x),
+                    idx(i+1, j, x),
                     idx(i+1, j+1, x),
-                    idx(i+1, j, x)
+                    idx(i, j, x)
                 ])
 
         vertices = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T[faces]
