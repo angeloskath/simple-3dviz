@@ -6,9 +6,20 @@ from .base import Renderable
 
 class Spherecloud(Renderable):
     def __init__(self, centers, colors, sizes):
-        self._centers = centers
-        self._colors = colors
-        self._sizes = sizes
+        self._centers = np.asarray(centers)
+        self._colors = np.asarray(colors)
+        self._sizes = np.asarray(sizes)
+
+        N = len(self._centers)
+        if len(self._colors.shape) == 1:
+            if self._colors.size == 3:
+                self._colors = np.array(self._colors.tolist() + [1])
+            self._colors = self._colors[np.newaxis].repeat(N, axis=0)
+        elif self._colors.shape[1] == 3:
+            self._colors = np.hstack([self._colors, np.ones((N, 1))])
+
+        if len(self._sizes.shape) == 0:
+            self._sizes = np.ones(N)*self._sizes
 
         self._prog = None
         self._vbo = None
