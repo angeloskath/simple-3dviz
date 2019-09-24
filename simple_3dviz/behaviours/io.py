@@ -3,13 +3,15 @@ from . import Behaviour
 
 
 class SaveFrames(Behaviour):
-    def __init__(self, path):
+    def __init__(self, path, every_n=1):
         self._path = path
+        self._every_n = every_n
         self._i = 0
 
     def behave(self, params):
-        frame = params.scene.frame
+        frame = params.frame()
         path = self._path.format(self._i)
         self._i += 1
 
-        save_frame(path, frame)
+        if (self._i % self._every_n) == 0:
+            save_frame(path, frame)

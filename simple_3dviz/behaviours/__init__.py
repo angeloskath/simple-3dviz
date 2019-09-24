@@ -19,14 +19,16 @@ class Behaviour(object):
         ----------
             window: A reference to the window object
             scene: A reference to the scene
+            frame: A callable that returns the current frame
             mouse: A Behaviour.Mouse object providing mouse info
             stop_propagation: bool, when set no more behaviours will be run
             done: bool, when set remove this behaviour from the list
             refresh: bool, when set make sure to redraw the window
         """
-        def __init__(self, window, scene, mouse):
+        def __init__(self, window, scene, frame, mouse):
             self.window = window
             self.scene = scene
+            self.frame = frame
             self.mouse = mouse
 
             self._stop = False

@@ -1,5 +1,6 @@
 
 import moderngl
+import numpy as np
 import wx
 import wx.glcanvas
 
@@ -38,6 +39,7 @@ class Window(BaseWindow):
                 ]
             )
             self._window = window
+            self._window._get_frame = self._get_frame
             self._context = wx.glcanvas.GLContext(self)
             self._mgl_context = None
             self._ticker = wx.Timer(self)
@@ -45,6 +47,13 @@ class Window(BaseWindow):
             self.Bind(wx.EVT_PAINT, self._on_paint)
             self.Bind(wx.EVT_TIMER, self._on_tick, self._ticker)
             self.Bind(wx.EVT_MOUSE_EVENTS, self._on_mouse)
+
+        def _get_frame(self):
+            framebuffer = self._mgl_context.detect_framebuffer()
+            return np.frombuffer(
+                framebuffer.read(components=4),
+                dtype=np.uint8
+            ).reshape(*(framebuffer.size + (4,)))
 
         def _on_paint(self, event):
             self.SetCurrent(self._context)
@@ -84,6 +93,7 @@ class Window(BaseWindow):
         params = Behaviour.Params(
             self,
             self._scene,
+            self._get_frame,
             self._mouse
         )
 

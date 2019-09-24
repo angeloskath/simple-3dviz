@@ -17,7 +17,7 @@ try:
         image_data[0], image_data[2] = image_data[2], image_data[0]
         frame = np.stack(image_data, axis=-1)
 
-        cv2.imwrite(path, frame)
+        cv2.imwrite(path, frame[::-1])
 
 except ImportError:
     from PIL import Image
@@ -71,7 +71,12 @@ def render(renderables, behaviours, n_frames, size=(512, 512),
         scene.render()
 
         # run the behaviours
-        params = Behaviour.Params(None, scene, None)
+        params = Behaviour.Params(
+            None,                 # we have no window
+            scene,                # the scene
+            lambda: scene.frame,  # return the frame if needed
+            None                  # no mouse
+        )
         remove = []
         for i, b in enumerate(behaviours):
             b.behave(params)
