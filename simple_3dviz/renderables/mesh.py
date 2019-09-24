@@ -289,24 +289,24 @@ class Mesh(Renderable):
         for o1, o2 in zip(np.roll(omega, 1), omega):
             triangles.extend([
                 (eta[0], 0),
-                (eta[1], o1),
                 (eta[1], o2),
+                (eta[1], o1),
             ])
         for e in range(1, len(eta)-2):
             for o1, o2 in zip(np.roll(omega, 1), omega):
                 triangles.extend([
                     (eta[e], o1),
+                    (eta[e+1], o2),
                     (eta[e+1], o1),
-                    (eta[e+1], o2),
                     (eta[e], o1),
-                    (eta[e+1], o2),
                     (eta[e], o2),
+                    (eta[e+1], o2),
                 ])
         for o1, o2 in zip(np.roll(omega, 1), omega):
             triangles.extend([
                 (eta[-1], 0),
-                (eta[-2], o2),
                 (eta[-2], o1),
+                (eta[-2], o2),
             ])
         triangles = np.array(triangles)
         eta, omega = triangles[:, 0], triangles[:, 1]
