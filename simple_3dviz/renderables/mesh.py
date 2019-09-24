@@ -1,8 +1,12 @@
 
 import numpy as np
-import trimesh
 
 from .base import Renderable
+
+try:
+    import trimesh
+except ImportError:
+    pass
 
 
 class Mesh(Renderable):
@@ -149,3 +153,111 @@ class Mesh(Renderable):
         colors = colors[faces].reshape(-1, 3)
 
         return cls(vertices, normals, colors)
+
+    @classmethod
+    def from_boxes(cls, centers, sizes, colors):
+        """Create boxes.
+
+        Arguments
+        ---------
+            centers: Array of 3 dimensional centers
+            sizes: Array of 3 sizes per box that give, half the width, half the
+                   depth, half the height
+            colors: tuple for all boxes or array of colors per box
+        """
+        box = np.array([[-1, -1,  1],
+                        [ 1, -1,  1],
+                        [ 1,  1,  1],
+                        [-1, -1,  1],
+                        [ 1,  1,  1],
+                        [-1,  1,  1],
+                        [-1,  1, -1],
+                        [ 1,  1,  1],
+                        [-1,  1,  1],
+                        [-1,  1, -1],
+                        [ 1,  1, -1],
+                        [ 1,  1,  1],
+                        [-1,  1, -1],
+                        [-1, -1,  1],
+                        [-1,  1,  1],
+                        [-1,  1, -1],
+                        [-1, -1,  1],
+                        [-1, -1, -1],
+                        [ 1, -1, -1],
+                        [ 1, -1,  1],
+                        [ 1,  1,  1],
+                        [ 1, -1, -1],
+                        [ 1,  1, -1],
+                        [ 1,  1,  1],
+                        [ 1, -1, -1],
+                        [-1, -1,  1],
+                        [ 1, -1,  1],
+                        [ 1, -1, -1],
+                        [-1, -1,  1],
+                        [-1, -1, -1],
+                        [ 1, -1, -1],
+                        [-1,  1, -1],
+                        [ 1,  1, -1],
+                        [ 1, -1, -1],
+                        [-1,  1, -1],
+                        [-1, -1, -1]]).astype(np.float32)
+
+        normals = np.array([[ 0,  0,  1],
+                            [ 0,  0,  1],
+                            [ 0,  0,  1],
+                            [ 0,  0,  1],
+                            [ 0,  0,  1],
+                            [ 0,  0,  1],
+                            [ 0,  1,  0],
+                            [ 0,  1,  0],
+                            [ 0,  1,  0],
+                            [ 0,  1,  0],
+                            [ 0,  1,  0],
+                            [ 0,  1,  0],
+                            [-1,  0,  0],
+                            [-1,  0,  0],
+                            [-1,  0,  0],
+                            [-1,  0,  0],
+                            [-1,  0,  0],
+                            [-1,  0,  0],
+                            [ 1,  0,  0],
+                            [ 1,  0,  0],
+                            [ 1,  0,  0],
+                            [ 1,  0,  0],
+                            [ 1,  0,  0],
+                            [ 1,  0,  0],
+                            [ 0, -1,  0],
+                            [ 0, -1,  0],
+                            [ 0, -1,  0],
+                            [ 0, -1,  0],
+                            [ 0, -1,  0],
+                            [ 0, -1,  0],
+                            [ 0,  0, -1],
+                            [ 0,  0, -1],
+                            [ 0,  0, -1],
+                            [ 0,  0, -1],
+                            [ 0,  0, -1],
+                            [ 0,  0, -1]]).astype(np.float32)
+
+        centers, sizes, colors = list(map(
+            np.asarray,
+            [centers, sizes, colors]
+        ))
+
+        assert len(centers.shape) == 2 and centers.shape[1] == 3
+        assert len(sizes.shape) == 2 and sizes.shape[1] == 3
+        vertices = centers[:, np.newaxis]+sizes[:, np.newaxis]*box[np.newaxis]
+        vertices = vertices.reshape(-1, 3)
+        normals = np.repeat(normals, len(centers), axis=0)
+
+        if len(colors.shape) == 1:
+            if colors.size > 3:
+                colors = colors[:3]
+            colors = colors[np.newaxis].repeat(len(vertices), axis=0)
+        elif colors.shape[1] == 4:
+            colors = colors[:, :3]
+        if len(colors) != len(vertices) and len(colors) == len(centers):
+            colors = np.repeat(colors, len(box), axis=0)
+
+        return cls(vertices, normals, colors)
+

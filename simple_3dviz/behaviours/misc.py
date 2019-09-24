@@ -45,3 +45,30 @@ class AddObjectsSequentially(Behaviour):
             params.scene.add(self._objects[self._index])
             self._index += 1
             params.refresh = True
+
+
+class CycleThroughObjects(Behaviour):
+    """Add a set of objects to the scene removing the ones previously added.
+
+    Arguments
+    ---------
+        objects: A list of lists of Renderable objects
+        interval: The interval between additions and removals in ticks
+    """
+    def __init__(self, objects, interval=30):
+        self._objects = objects
+        self._interval = interval
+
+        self._ticks = interval
+        self._object = -1
+
+    def behave(self, params):
+        self._ticks += 1
+        if self._ticks > self._interval:
+            self._ticks = 0
+            for o in self._objects[self._object]:
+                params.scene.remove(o)
+            self._object = (self._object + 1) % len(self._objects)
+            for i in self._objects[self._object]:
+                params.scene.add(o)
+            params.refresh = True
