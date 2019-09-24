@@ -69,6 +69,6 @@ class CycleThroughObjects(Behaviour):
             for o in self._objects[self._object]:
                 params.scene.remove(o)
             self._object = (self._object + 1) % len(self._objects)
-            for i in self._objects[self._object]:
+            for o in self._objects[self._object]:
                 params.scene.add(o)
             params.refresh = True
