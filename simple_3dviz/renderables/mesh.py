@@ -261,3 +261,87 @@ class Mesh(Renderable):
 
         return cls(vertices, normals, colors)
 
+    @classmethod
+    def from_superquadrics(cls, alpha, epsilon, translation, rotation, colors):
+        """Create Superquadrics.
+
+        Arguments
+        ---------
+            alpha: Array of 3 sizes, along each axis
+            epsilon: Array of 2 shapes, along each a
+            translation: Array of 3 dimensional center
+            rotation: Array of size 3x3 containing the rotations
+            colors: Tuple for all sqs or array of colors per sq
+        """
+        def fexp(x, p):
+            return np.sign(x)*(np.abs(x)**p)
+
+        def sq_surface(a1, a2, a3, e1, e2, eta, omega):
+            x = a1 * fexp(np.cos(eta), e1) * fexp(np.cos(omega), e2)
+            y = a2 * fexp(np.cos(eta), e1) * fexp(np.sin(omega), e2)
+            z = a3 * fexp(np.sin(eta), e1)
+            return x, y, z
+
+        # triangulate the sphere to be used with the SQs
+        eta = np.linspace(-np.pi/2, np.pi/2, 100, endpoint=True)
+        omega = np.linspace(-np.pi, np.pi, 100, endpoint=True)
+        triangles = []
+        for o1, o2 in zip(np.roll(omega, 1), omega):
+            triangles.extend([
+                (eta[0], 0),
+                (eta[1], o1),
+                (eta[1], o2),
+            ])
+        for e in range(1, len(eta)-2):
+            for o1, o2 in zip(np.roll(omega, 1), omega):
+                triangles.extend([
+                    (eta[e], o1),
+                    (eta[e+1], o1),
+                    (eta[e+1], o2),
+                    (eta[e], o1),
+                    (eta[e+1], o2),
+                    (eta[e], o2),
+                ])
+        for o1, o2 in zip(np.roll(omega, 1), omega):
+            triangles.extend([
+                (eta[-1], 0),
+                (eta[-2], o2),
+                (eta[-2], o1),
+            ])
+        triangles = np.array(triangles)
+        eta, omega = triangles[:, 0], triangles[:, 1]
+
+        # collect the pretriangulated vertices of each SQ
+        vertices = []
+        a, e, t, R = list(map(
+            np.asarray,
+            [alpha, epsilon, translation, rotation]
+        ))
+        M, _ = a.shape  # number of superquadrics
+        assert R.shape == (M, 3, 3)
+        assert t.shape == (M, 3)
+        for i in range(M):
+            a1, a2, a3 = a[i]
+            e1, e2 = e[i]
+            x, y, z = sq_surface(a1, a2, a3, e1, e2, eta, omega)
+            # Get points on the surface of each SQ
+            V = np.stack([x, y, z], axis=-1)
+            V = R[i].T.dot(V.T).T + t[i].reshape(1, 3)
+            vertices.append(V)
+
+        # Finalize the mesh
+        vertices = np.vstack(vertices)
+        normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
+        colors = np.asarray(colors)
+        if len(colors.shape) == 1:
+            if colors.size > 3:
+                colors = colors[:3]
+            colors = colors[np.newaxis].repeat(len(vertices), axis=0)
+        elif colors.shape[1] == 4:
+            colors = colors[:, :3]
+        assert len(colors) == len(vertices) or len(colors) == M
+        if len(colors) == M:
+            colors = np.repeat(colors, len(vertices) // M, axis=0)
+
+        return cls(vertices, normals, colors)
+
