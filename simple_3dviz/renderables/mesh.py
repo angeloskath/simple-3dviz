@@ -11,9 +11,17 @@ except ImportError:
 
 class Mesh(Renderable):
     def __init__(self, vertices, normals, colors):
-        self._vertices = vertices
-        self._normals = normals
-        self._colors = colors
+        self._vertices = np.asarray(vertices)
+        self._normals = np.asarray(normals)
+        self._colors = np.asarray(colors)
+
+        N = len(self._vertices)
+        if len(self._colors.shape) == 1:
+            if self._colors.size == 3:
+                self._colors = np.array(self._colors.tolist() + [1])
+            self._colors = self._colors[np.newaxis].repeat(N, axis=0)
+        elif self._colors.shape[1] == 3:
+            self._colors = np.hstack([self._colors, np.ones((N, 1))])
 
         self._prog = None
         self._vao = None
@@ -26,10 +34,10 @@ class Mesh(Renderable):
                 uniform mat4 mvp;
                 in vec3 in_vert;
                 in vec3 in_norm;
-                in vec3 in_color;
+                in vec4 in_color;
                 out vec3 v_vert;
                 out vec3 v_norm;
-                out vec3 v_color;
+                out vec4 v_color;
 
                 void main() {
                     v_vert = in_vert;
@@ -44,7 +52,7 @@ class Mesh(Renderable):
                 uniform vec3 light;
                 in vec3 v_vert;
                 in vec3 v_norm;
-                in vec3 v_color;
+                in vec4 v_color;
 
                 out vec4 f_color;
 
@@ -53,7 +61,7 @@ class Mesh(Renderable):
                     lum = acos(lum) / 3.14159265;
                     lum = clamp(lum, 0.0, 1.0);
 
-                    f_color = vec4(v_color * lum, 1.0);
+                    f_color = vec4(v_color.xyz * lum, v_color.w);
                 }
             """
         )
@@ -95,7 +103,7 @@ class Mesh(Renderable):
             colors = np.ones_like(vertices) * color
         elif mesh.visual is not None:
             colors = mesh.visual.vertex_colors[mesh.faces.ravel()]
-            colors = colors[:, :3].astype(np.float32)/255
+            colors = colors[:, :4].astype(np.float32)/255
 
         return cls(vertices, normals, colors)
 
@@ -251,11 +259,9 @@ class Mesh(Renderable):
         normals = np.repeat(normals, len(centers), axis=0)
 
         if len(colors.shape) == 1:
-            if colors.size > 3:
-                colors = colors[:3]
+            if colors.size < 4:
+                colors = np.array(colors.tolist() + [1.]*(4-colors.size))
             colors = colors[np.newaxis].repeat(len(vertices), axis=0)
-        elif colors.shape[1] == 4:
-            colors = colors[:, :3]
         if len(colors) != len(vertices) and len(colors) == len(centers):
             colors = np.repeat(colors, len(box), axis=0)
 
@@ -333,12 +339,11 @@ class Mesh(Renderable):
         vertices = np.vstack(vertices)
         normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
         colors = np.asarray(colors)
+
         if len(colors.shape) == 1:
-            if colors.size > 3:
-                colors = colors[:3]
+            if colors.size < 4:
+                colors = np.array(colors.tolist() + [1.]*(4-colors.size))
             colors = colors[np.newaxis].repeat(len(vertices), axis=0)
-        elif colors.shape[1] == 4:
-            colors = colors[:, :3]
         assert len(colors) == len(vertices) or len(colors) == M
         if len(colors) == M:
             colors = np.repeat(colors, len(vertices) // M, axis=0)

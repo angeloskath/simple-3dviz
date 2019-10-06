@@ -7,9 +7,17 @@ from .base import Renderable
 
 class Lines(Renderable):
     def __init__(self, points, colors, width=1):
-        self._points = points
-        self._colors = colors
+        self._points = np.asarray(points)
+        self._colors = np.asarray(colors)
         self._width = width
+
+        N = len(self._points)
+        if len(self._colors.shape) == 1:
+            if self._colors.size == 3:
+                self._colors = np.array(self._colors.tolist() + [1])
+            self._colors = self._colors[np.newaxis].repeat(N, axis=0)
+        elif self._colors.shape[1] == 3:
+            self._colors = np.hstack([self._colors, np.ones((N, 1))])
 
         self._prog = None
         self._vbo = None
