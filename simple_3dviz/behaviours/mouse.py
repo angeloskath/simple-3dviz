@@ -68,3 +68,37 @@ class MouseZoom(Behaviour):
             params.scene.camera_position = cam_position
             params.refresh = True
 
+
+class MousePan(Behaviour):
+    """Move the target by dragging the mouse with the middle button pressed."""
+    def __init__(self, delta=1.):
+        self._delta = delta
+        self._start = None
+        self._target = None
+        self._right = None
+        self._up = None
+
+    def behave(self, params):
+        if params.mouse.middle_pressed:
+            if self._start is None:
+                self._start = params.mouse.location
+                self._target = params.scene.camera_target
+                cam_dir = params.scene.camera_position - self._target
+                cam_dir = vector.normalize(cam_dir)
+                self._right = np.cross(params.scene.up_vector, cam_dir)
+                self._up = np.cross(cam_dir, self._right)
+            else:
+                size = params.scene.size
+                end = params.mouse.location
+                deltaX = float(end[0] - self._start[0])/size[0]
+                deltaY = float(end[1] - self._start[1])/size[1]
+
+                newtarget = (
+                    self._target +
+                    -self._delta * deltaX * self._right +
+                    self._delta * deltaY * self._up
+                )
+                params.scene.camera_target = newtarget
+                params.refresh = True
+        else:
+            self._start = None

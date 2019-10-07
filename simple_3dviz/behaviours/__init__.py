@@ -7,9 +7,10 @@ class Behaviour(object):
 
         WARNING: The API most definitely will change.
         """
-        def __init__(self, location, left_pressed, wheel_rotation):
+        def __init__(self, location, left_pressed, middle_pressed, wheel_rotation):
             self.location = location
             self.left_pressed = left_pressed
+            self.middle_pressed = middle_pressed
             self.wheel_rotation = wheel_rotation
 
     class Keyboard(object):

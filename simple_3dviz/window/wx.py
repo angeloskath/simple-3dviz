@@ -82,6 +82,7 @@ class Window(BaseWindow):
             state = wx.GetMouseState()
             self._window._mouse.location = (state.GetX(), state.GetY())
             self._window._mouse.left_pressed = state.LeftIsDown()
+            self._window._mouse.middle_pressed = state.MiddleIsDown()
             if abs(event.GetWheelRotation()) > 0:
                 self._window._mouse.wheel_rotation += (
                     event.GetWheelRotation()/event.GetWheelDelta()
@@ -110,7 +111,7 @@ class Window(BaseWindow):
     def __init__(self, size=(512, 512)):
         super(Window, self).__init__(size)
         self._scene = None
-        self._mouse = Behaviour.Mouse(None, None, None)
+        self._mouse = Behaviour.Mouse(None, None, None, None)
         self._keyboard = Behaviour.Keyboard([], [])
 
     def _behave(self, event):
