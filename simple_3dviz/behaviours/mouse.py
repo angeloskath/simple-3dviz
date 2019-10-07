@@ -1,44 +1,53 @@
 import numpy as np
-from pyrr import Vector3, matrix44, vector
+from pyrr import matrix33, vector
 
 from . import Behaviour
+from .trajectory import Circle
 
 
 class MouseRotate(Behaviour):
-    """Rotate the view based using the mouse when left button is pressed."""
+    """Rotate the camera based using the mouse when left button is pressed.
+
+    We rotate the camera with the following convention. At any given point we
+    consider a sphere with a center in target and radius equal to the distance
+    to the camera. We move on that sphere based on the movements of the mouse.
+    """
     def __init__(self):
         self._start = None
-        self._rot = None
-        self._camera_right = None
-        self._camera_up = None
+        self._origin = None
+        self._camera_pos = None
+        self._right = None
+        self._up = None
 
     def behave(self, params):
         if params.mouse.left_pressed:
             if self._start is None:
                 self._start = params.mouse.location
-                self._rot = params.scene.rotation
-                cam_position, w = Vector3.from_vector4(params.scene.vm[3])
-                cam_position /= w
-                cam_target = params.scene.camera_target
-                cam_up = params.scene.up_vector
-                inv_cam_dir = vector.normalize(cam_position-cam_target)
-                self._camera_right = np.cross(cam_up, inv_cam_dir)
-                self._camera_up = np.cross(inv_cam_dir, self._camera_right)
+                self._origin = params.scene.camera_target
+                self._camera_pos = params.scene.camera_position
+                cam_dir = vector.normalize(self._camera_pos - self._origin)
+                self._right = np.cross(params.scene.up_vector, cam_dir)
+                self._up = np.cross(cam_dir, self._right)
             else:
                 size = params.scene.size
                 end = params.mouse.location
                 deltaX = float(end[0] - self._start[0])/size[0]
                 deltaY = float(end[1] - self._start[1])/size[1]
 
-                rx = matrix44.create_from_axis_rotation(
-                    axis=self._camera_up,
-                    theta=deltaX * np.pi
+                Rx = matrix33.create_from_axis_rotation(
+                    self._up,
+                    deltaX*2*np.pi
                 )
-                ry = matrix44.create_from_axis_rotation(
-                    axis=self._camera_right,
-                    theta=deltaY * np.pi
+                Ry = matrix33.create_from_axis_rotation(
+                    self._right,
+                    deltaY*2*np.pi
                 )
-                params.scene.rotation = self._rot * rx * ry
+                R = Ry.dot(Rx)
+                newpos = self._origin + R.dot(self._camera_pos - self._origin)
+                newup = R.dot(self._up)
+
+                params.scene.camera_position = newpos
+                params.scene.up_vector = newup
                 params.refresh = True
         else:
             self._start = None
