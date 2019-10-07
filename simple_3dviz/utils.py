@@ -75,7 +75,8 @@ def render(renderables, behaviours, n_frames, size=(512, 512),
             None,                 # we have no window
             scene,                # the scene
             lambda: scene.frame,  # return the frame if needed
-            None                  # no mouse
+            None,                 # no mouse
+            None                  # no keyboard
         )
         remove = []
         for i, b in enumerate(behaviours):

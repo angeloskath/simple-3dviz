@@ -47,6 +47,8 @@ class Window(BaseWindow):
             self.Bind(wx.EVT_PAINT, self._on_paint)
             self.Bind(wx.EVT_TIMER, self._on_tick, self._ticker)
             self.Bind(wx.EVT_MOUSE_EVENTS, self._on_mouse)
+            self.Bind(wx.EVT_KEY_DOWN, self._on_keyboard)
+            self.Bind(wx.EVT_KEY_UP, self._on_keyboard)
 
         def _get_frame(self):
             framebuffer = self._mgl_context.detect_framebuffer()
@@ -73,6 +75,8 @@ class Window(BaseWindow):
             if self._window._behave(event):
                 self.Refresh()
             self._window._mouse.wheel_rotation = 0
+            self._window._keyboard.keys_down.clear()
+            self._window._keyboard.keys_up.clear()
 
         def _on_mouse(self, event):
             state = wx.GetMouseState()
@@ -83,10 +87,31 @@ class Window(BaseWindow):
                     event.GetWheelRotation()/event.GetWheelDelta()
                 )
 
+        def _on_keyboard(self, event):
+            down = event.GetEventType() == wx.EVT_KEY_DOWN.typeId
+            key = chr(event.GetUnicodeKey())
+            alt = event.AltDown == down
+            ctrl = event.ControlDown == down
+            cmd = event.CmdDown == down
+            meta = event.MetaDown == down
+            keys = (
+                [key] if key != 0 else [] +
+                (["<alt>"] if alt else []) +
+                (["<ctrl>"] if ctrl else []) +
+                (["<cmd>"] if cmd else []) +
+                (["<meta>"] if meta else [])
+            )
+
+            if down:
+                self._window._keyboard.keys_down.update(keys)
+            else:
+                self._window._keyboard.keys_up.update(keys)
+
     def __init__(self, size=(512, 512)):
         super(Window, self).__init__(size)
         self._scene = None
         self._mouse = Behaviour.Mouse(None, None, None)
+        self._keyboard = Behaviour.Keyboard([], [])
 
     def _behave(self, event):
         # Make the behaviour parameters
@@ -94,7 +119,8 @@ class Window(BaseWindow):
             self,
             self._scene,
             self._get_frame,
-            self._mouse
+            self._mouse,
+            self._keyboard
         )
 
         # Run the behaviours

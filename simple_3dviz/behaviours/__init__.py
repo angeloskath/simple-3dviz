@@ -12,6 +12,16 @@ class Behaviour(object):
             self.left_pressed = left_pressed
             self.wheel_rotation = wheel_rotation
 
+    class Keyboard(object):
+        """Holds information about the keyboard events.
+
+        The members are two sets containing the keys that were pressed down and
+        released respectively.
+        """
+        def __init__(self, keys_down, keys_up):
+            self.keys_down = set(keys_down)
+            self.keys_up = set(keys_up)
+
     class Params(object):
         """The parameters provided by the window to the behaviours.
 
@@ -21,15 +31,17 @@ class Behaviour(object):
             scene: A reference to the scene
             frame: A callable that returns the current frame
             mouse: A Behaviour.Mouse object providing mouse info
+            keyboard: A Behaviour.Keyboard object providing keyboard info
             stop_propagation: bool, when set no more behaviours will be run
             done: bool, when set remove this behaviour from the list
             refresh: bool, when set make sure to redraw the window
         """
-        def __init__(self, window, scene, frame, mouse):
+        def __init__(self, window, scene, frame, mouse, keyboard):
             self.window = window
             self.scene = scene
             self.frame = frame
             self.mouse = mouse
+            self.keyboard = keyboard
 
             self._stop = False
             self._done = False
