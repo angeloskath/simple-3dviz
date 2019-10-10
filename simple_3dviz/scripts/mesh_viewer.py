@@ -1,7 +1,10 @@
 
 import argparse
+from os import path
+from tempfile import gettempdir
 
 from .. import Mesh
+from ..behaviours.keyboard import SnapshotOnKey
 from ..window import show
 
 
@@ -66,6 +69,11 @@ def main(argv=None):
         type=f_tuple(3),
         default=(-0.5, -0.8, -2)
     )
+    parser.add_argument(
+        "--save_frame",
+        default=path.join(gettempdir(), "frame_{:03d}.png"),
+        help="The location to save the snapshot frame"
+    )
 
     args = parser.parse_args(argv)
 
@@ -73,5 +81,6 @@ def main(argv=None):
         Mesh.from_file(args.file),
         size=args.size, background=args.background, title="Mesh Viewer",
         camera_position=args.camera_position, camera_target=args.camera_target,
-        up_vector=args.up, light=args.light
+        up_vector=args.up, light=args.light,
+        behaviours=[SnapshotOnKey(path=args.save_frame, keys={"<ctrl>", "S"})]
     )

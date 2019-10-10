@@ -75,7 +75,6 @@ class Window(BaseWindow):
             if self._window._behave(event):
                 self.Refresh()
             self._window._mouse.wheel_rotation = 0
-            self._window._keyboard.keys_down.clear()
             self._window._keyboard.keys_up.clear()
 
         def _on_mouse(self, event):
@@ -91,12 +90,12 @@ class Window(BaseWindow):
         def _on_keyboard(self, event):
             down = event.GetEventType() == wx.EVT_KEY_DOWN.typeId
             key = chr(event.GetUnicodeKey())
-            alt = event.AltDown == down
-            ctrl = event.ControlDown == down
-            cmd = event.CmdDown == down
-            meta = event.MetaDown == down
-            keys = (
-                [key] if key != 0 else [] +
+            alt = event.AltDown() == down
+            ctrl = event.ControlDown() == down
+            cmd = event.CmdDown() == down
+            meta = event.MetaDown() == down
+            keys = set(
+                [key] if key != "\00" else [] +
                 (["<alt>"] if alt else []) +
                 (["<ctrl>"] if ctrl else []) +
                 (["<cmd>"] if cmd else []) +
@@ -106,7 +105,10 @@ class Window(BaseWindow):
             if down:
                 self._window._keyboard.keys_down.update(keys)
             else:
-                self._window._keyboard.keys_up.update(keys)
+                self._window._keyboard.keys_up.update(
+                    keys | self._window._keyboard.keys_down
+                )
+                self._window._keyboard.keys_down.difference_update(keys)
 
     def __init__(self, size=(512, 512)):
         super(Window, self).__init__(size)
