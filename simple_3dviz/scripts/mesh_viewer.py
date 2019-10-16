@@ -5,6 +5,7 @@ from tempfile import gettempdir
 
 from .. import Mesh
 from ..behaviours.keyboard import SnapshotOnKey
+from ..behaviours.misc import LightToCamera
 from ..window import show
 
 
@@ -67,7 +68,7 @@ def main(argv=None):
     parser.add_argument(
         "--light",
         type=f_tuple(3),
-        default=(-0.5, -0.8, -2)
+        default=None
     )
     parser.add_argument(
         "--save_frame",
@@ -77,10 +78,16 @@ def main(argv=None):
 
     args = parser.parse_args(argv)
 
+    behaviours = [
+        SnapshotOnKey(path=args.save_frame, keys={"<ctrl>", "S"})
+    ]
+    if args.light is None:
+        behaviours.append(LightToCamera())
+
     show(
         Mesh.from_file(args.file),
         size=args.size, background=args.background, title="Mesh Viewer",
         camera_position=args.camera_position, camera_target=args.camera_target,
         up_vector=args.up, light=args.light,
-        behaviours=[SnapshotOnKey(path=args.save_frame, keys={"<ctrl>", "S"})]
+        behaviours=behaviours
     )
