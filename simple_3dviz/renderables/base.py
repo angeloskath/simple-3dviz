@@ -4,6 +4,10 @@ class Renderable(object):
         """Initialize the renderable with the moderngl context."""
         raise NotImplementedError()
 
+    def release(self):
+        """Release all resources of this renderable in relation to open gl"""
+        raise NotImplementedError()
+
     def update_uniforms(self, uniforms):
         """Update any uniforms that are provided from somewhere else.
 

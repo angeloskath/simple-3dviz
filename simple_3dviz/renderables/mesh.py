@@ -24,6 +24,7 @@ class Mesh(Renderable):
             self._colors = np.hstack([self._colors, np.ones((N, 1))])
 
         self._prog = None
+        self._vbo = None
         self._vao = None
 
     def init(self, ctx):
@@ -65,16 +66,21 @@ class Mesh(Renderable):
                 }
             """
         )
-        vbo = ctx.buffer(np.hstack([
+        self._vbo = ctx.buffer(np.hstack([
             self._vertices,
             self._normals,
             self._colors
         ]).astype(np.float32).tobytes())
         self._vao = ctx.simple_vertex_array(
             self._prog,
-            vbo,
+            self._vbo,
             "in_vert", "in_norm", "in_color"
         )
+
+    def release(self):
+        self._prog.release()
+        self._vbo.release()
+        self._vao.release()
 
     def render(self):
         self._vao.render()

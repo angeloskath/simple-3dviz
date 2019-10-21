@@ -57,6 +57,7 @@ class BaseScene(object):
 
     def remove(self, renderable):
         if renderable in self._renderables:
+            self._renderables[renderable].release()
             del self._renderables[renderable]
 
     @property

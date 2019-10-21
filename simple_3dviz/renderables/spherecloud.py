@@ -124,6 +124,11 @@ class Spherecloud(Renderable):
             "in_vertex", "in_center", "in_color", "in_radius"
         )
 
+    def release(self):
+        self._prog.release()
+        self._vbo.release()
+        self._vao.release()
+
     def render(self):
         self._vao.render()
 
