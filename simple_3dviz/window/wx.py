@@ -61,6 +61,11 @@ class Window(BaseWindow):
             self.SetCurrent(self._context)
             if self._window._scene is None:
                 self._mgl_context = moderngl.create_context()
+                self._mgl_context.enable(moderngl.BLEND)
+                self._mgl_context.blend_func = (
+                    moderngl.SRC_ALPHA,
+                    moderngl.ONE_MINUS_SRC_ALPHA
+                )
                 self._window._scene = Scene(
                     size=(self.Size.width, self.Size.height),
                     background=(0,)*4,

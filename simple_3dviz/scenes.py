@@ -20,6 +20,11 @@ class BaseScene(object):
     def __init__(self, size=(256, 256), background=(1, 1, 1, 1), ctx=None):
         if ctx is None:
             self._ctx = moderngl.create_standalone_context()
+            self._ctx.enable(moderngl.BLEND)
+            self._ctx.blend_func = (
+                moderngl.SRC_ALPHA,
+                moderngl.ONE_MINUS_SRC_ALPHA
+            )
             self._framebuffer = self._ctx.framebuffer(
                 self._ctx.renderbuffer(size),
                 self._ctx.depth_renderbuffer(size)

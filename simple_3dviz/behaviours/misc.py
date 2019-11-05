@@ -72,3 +72,23 @@ class CycleThroughObjects(Behaviour):
             for o in self._objects[self._object]:
                 params.scene.add(o)
             params.refresh = True
+
+
+class SortTriangles(Behaviour):
+    """Sort the triangles of the scene wrt the camera position."""
+    def __init__(self):
+        self._prev_camera = None
+
+    def behave(self, params):
+        camera = params.scene.camera_position
+        if (
+            self._prev_camera is None or
+            any([
+                abs(c1-c2)>1e-3 for c1, c2 in zip(self._prev_camera, camera)
+            ])
+        ):
+            self._prev_camera = camera
+            for r in params.scene.renderables:
+                if hasattr(r, "sort_triangles"):
+                    r.sort_triangles(camera)
+            params.refresh = True

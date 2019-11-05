@@ -90,6 +90,24 @@ class Mesh(Renderable):
             if k in ["light", "mvp"]:
                 self._prog[k].write(v.tobytes())
 
+    def sort_triangles(self, point):
+        """Sort the triangles wrt point from further to closest."""
+        vertices = self._vertices.reshape(-1, 3, 3)
+        normals = self._normals.reshape(-1, 9)
+        colors = self._colors.reshape(-1, 12)
+
+        centers = vertices.mean(-2)
+        d = ((np.asarray(point).reshape(1, 3) - centers)**2).sum(-1)
+        alpha = (colors[:, ::4].mean(-1)<1).astype(np.float32) * 1000
+        idxs = np.argsort(d+alpha)[::-1]
+
+        self._vertices = vertices[idxs].reshape(-1, 3)
+        self._normals = normals[idxs].reshape(-1, 3)
+        self._colors = colors[idxs].reshape(-1, 4)
+        self._vbo.write(np.hstack([
+            self._vertices, self._normals, self._colors
+        ]).astype(np.float32).tobytes())
+
     @staticmethod
     def _triangle_normals(triangles):
         triangles = triangles.reshape(-1, 3, 3)
