@@ -124,6 +124,21 @@ class Spherecloud(Renderable):
             "in_vertex", "in_center", "in_color", "in_radius"
         )
 
+    def sort_triangles(self, point):
+        """Sort the triangles wrt point from further to closest."""
+        centers = self._centers
+        colors = self._colors
+        sizes = self._sizes
+
+        d = ((np.asarray(point).reshape(1, 3) - centers)**2).sum(-1)
+        alpha = (colors[:, ::4].mean(-1)<1).astype(np.float32) * 1000
+        idxs = np.argsort(d+alpha)[::-1]
+
+        self._centers = centers[idxs]
+        self._colors = colors[idxs]
+        self._sizes = sizes[idxs]
+        self._vbo.write(self.packed_parameters.tobytes())
+
     def release(self):
         self._prog.release()
         self._vbo.release()

@@ -9,7 +9,7 @@ except ImportError:
 from ..renderables import Renderable
 from ..behaviours import Behaviour, SceneInit
 from ..behaviours.mouse import MouseRotate, MouseZoom, MousePan
-from ..behaviours.keyboard import CameraReport
+from ..behaviours.keyboard import CameraReport, SortTriangles
 
 
 def simple_window(init, size=(512, 512)):
@@ -26,7 +26,7 @@ def simple_window(init, size=(512, 512)):
     """
     w = Window(size)
     w.add_behaviours([SceneInit(init), MouseRotate(), MouseZoom(),
-                      MousePan(), CameraReport()])
+                      MousePan(), CameraReport(), SortTriangles()])
     return w
 
 

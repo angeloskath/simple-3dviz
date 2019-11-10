@@ -58,3 +58,21 @@ class CameraReport(OnKeys):
         print("Camera Target: " + csv(params.scene.camera_target))
         print("Camera Position: " + csv(params.scene.camera_position))
         print("Up Vector: " + csv(params.scene.up_vector))
+
+
+class SortTriangles(OnKeys):
+    """Sort the triangles wrt to the camera so that the transparency works.
+
+    Arguments
+    ---------
+        keys: A set of keys that must all be pressed to activate the action
+    """
+    def __init__(self, keys={"T"}):
+        super(SortTriangles, self).__init__(keys)
+
+    def action(self, params):
+        camera = params.scene.camera_position
+        for r in params.scene.renderables:
+            if hasattr(r, "sort_triangles"):
+                r.sort_triangles(camera)
+        params.refresh = True
