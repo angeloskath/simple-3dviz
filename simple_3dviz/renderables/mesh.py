@@ -292,7 +292,8 @@ class Mesh(Renderable):
         return cls(vertices, normals, colors)
 
     @classmethod
-    def from_superquadrics(cls, alpha, epsilon, translation, rotation, colors):
+    def from_superquadrics(cls, alpha, epsilon, translation, rotation, colors,
+                           vertex_count=10000):
         """Create Superquadrics.
 
         Arguments
@@ -313,8 +314,9 @@ class Mesh(Renderable):
             return x, y, z
 
         # triangulate the sphere to be used with the SQs
-        eta = np.linspace(-np.pi/2, np.pi/2, 100, endpoint=True)
-        omega = np.linspace(-np.pi, np.pi, 100, endpoint=True)
+        n = int(np.sqrt(vertex_count))
+        eta = np.linspace(-np.pi/2, np.pi/2, n, endpoint=True)
+        omega = np.linspace(-np.pi, np.pi, n, endpoint=True)
         triangles = []
         for o1, o2 in zip(np.roll(omega, 1), omega):
             triangles.extend([
