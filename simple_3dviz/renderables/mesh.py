@@ -8,6 +8,8 @@ try:
 except ImportError:
     pass
 
+from pyrr import Matrix44
+
 
 class Mesh(Renderable):
     def __init__(self, vertices, normals, colors):
@@ -33,6 +35,8 @@ class Mesh(Renderable):
                 #version 330
 
                 uniform mat4 mvp;
+                uniform mat4 local_model;
+                uniform vec3 offset;
                 in vec3 in_vert;
                 in vec3 in_norm;
                 in vec4 in_color;
@@ -44,7 +48,10 @@ class Mesh(Renderable):
                     v_vert = in_vert;
                     v_norm = in_norm;
                     v_color = in_color;
-                    gl_Position = mvp * vec4(v_vert, 1.0);
+                    vec4 t_position = vec4(v_vert-offset, 1.0);
+                    t_position = local_model * t_position;
+                    t_position.xyz += offset;
+                    gl_Position = mvp * t_position;
                 }
             """,
             fragment_shader="""
@@ -76,6 +83,8 @@ class Mesh(Renderable):
             self._vbo,
             "in_vert", "in_norm", "in_color"
         )
+        self.local_model = np.eye(4).astype(np.float32)
+        self.offset = np.zeros(3).astype(np.float32)
 
     def release(self):
         self._prog.release()
@@ -89,6 +98,39 @@ class Mesh(Renderable):
         for k, v in uniforms:
             if k in ["light", "mvp"]:
                 self._prog[k].write(v.tobytes())
+
+    @property
+    def model_matrix(self):
+        return self._prog["local_model"]
+
+    @model_matrix.setter
+    def model_matrix(self, v):
+        self._prog["local_model"].write(v.tobytes())
+
+    def rotate_x(self, angle):
+        m = Matrix44.from_x_rotation(angle)
+        self.model_matrix = m*self.model_matrix
+
+    def rotate_y(self, angle):
+        m = Matrix44.from_y_rotation(angle)
+        self.model_matrix = m*self.model_matrix
+
+    def rotate_z(self, angle):
+        m = Matrix44.from_z_rotation(angle)
+        self.model_matrix = m*self.model_matrix
+
+    def rotate_axis(self, axis, angle):
+        m = Matrix44.from_axis_rotation(axis, angle)
+        self.model_matrix = m*self.model_matrix
+
+    @property
+    def offset(self):
+        return self._prog["offset"]
+
+    @offset.setter
+    def offset(self, v):
+        v = np.asarray(v).astype(np.float32)
+        self._prog["offset"].write(v.tobytes())
 
     def sort_triangles(self, point):
         """Sort the triangles wrt point from further to closest."""

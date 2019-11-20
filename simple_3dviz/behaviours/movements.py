@@ -25,6 +25,27 @@ class RotateModel(Behaviour):
         params.refresh = True
 
 
+class LocalModelRotation(Behaviour):
+    """Use a per renderable model matrix to rotate the models if available.
+    
+    Arguments
+    ---------
+        axis: array-like (3,) the axis around which to rotate
+        speed: float, radians per tick
+    """
+    def __init__(self, axis=[0, 0, 1], speed=np.pi/90):
+        self._axis = axis
+        self._speed = speed
+
+    def behave(self, params):
+        refresh = False
+        for r in params.scene.renderables:
+            if hasattr(r, "rotate_axis"):
+                r.rotate_axis(self._axis, self._speed)
+                refresh = True
+        params.refresh = refresh
+
+
 class _TrajectoryMovement(Behaviour):
     """Abstract class that implements adjusting a quantity based on a passed
     trajectory.
