@@ -33,7 +33,7 @@ class LocalModelRotation(Behaviour):
         axis: array-like (3,) the axis around which to rotate
         speed: float, radians per tick
     """
-    def __init__(self, axis=[0, 0, 1], speed=np.pi/90):
+    def __init__(self, axis=[0, 0, 1.], speed=np.pi/90):
         self._axis = axis
         self._speed = speed
 
@@ -73,6 +73,13 @@ class CameraTrajectory(_TrajectoryMovement):
     """Move the camera along a trajectory."""
     def _adjust(self, params, v):
         params.scene.camera_position = v
+        params.refresh = True
+
+
+class CameraTargetTrajectory(_TrajectoryMovement):
+    """Move the camera target along a trajectory."""
+    def _adjust(self, params, v):
+        params.scene.camera_target = v
         params.refresh = True
 
 

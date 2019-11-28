@@ -8,14 +8,16 @@ try:
 except ImportError:
     pass
 
-from pyrr import Matrix44
+from pyrr import Matrix44, matrix44
 
 
 class Mesh(Renderable):
-    def __init__(self, vertices, normals, colors):
+    def __init__(self, vertices, normals, colors, offset=[0, 0, 0.]):
         self._vertices = np.asarray(vertices)
         self._normals = np.asarray(normals)
         self._colors = np.asarray(colors)
+        self._model_matrix = np.eye(4).astype(np.float32)
+        self._offset = np.asarray(offset).astype(np.float32)
 
         N = len(self._vertices)
         if len(self._colors.shape) == 1:
@@ -48,9 +50,9 @@ class Mesh(Renderable):
                     v_vert = in_vert;
                     v_norm = in_norm;
                     v_color = in_color;
-                    vec4 t_position = vec4(v_vert-offset, 1.0);
+                    vec4 t_position = vec4(v_vert, 1.0);
                     t_position = local_model * t_position;
-                    t_position.xyz += offset;
+                    t_position = t_position + vec4(offset, 0.);
                     gl_Position = mvp * t_position;
                 }
             """,
@@ -83,8 +85,8 @@ class Mesh(Renderable):
             self._vbo,
             "in_vert", "in_norm", "in_color"
         )
-        self.local_model = np.eye(4).astype(np.float32)
-        self.offset = np.zeros(3).astype(np.float32)
+        self.model_matrix = self._model_matrix
+        self.offset = self._offset
 
     def release(self):
         self._prog.release()
@@ -101,36 +103,39 @@ class Mesh(Renderable):
 
     @property
     def model_matrix(self):
-        return self._prog["local_model"]
+        return self._model_matrix
 
     @model_matrix.setter
     def model_matrix(self, v):
-        self._prog["local_model"].write(v.tobytes())
+        self._model_matrix = np.asarray(v).astype(np.float32)
+        if self._prog:
+            self._prog["local_model"].write(self._model_matrix.tobytes())
 
     def rotate_x(self, angle):
         m = Matrix44.from_x_rotation(angle)
-        self.model_matrix = m*self.model_matrix
+        self.model_matrix = m.dot(self.model_matrix)
 
     def rotate_y(self, angle):
         m = Matrix44.from_y_rotation(angle)
-        self.model_matrix = m*self.model_matrix
+        self.model_matrix = m.dot(self.model_matrix)
 
     def rotate_z(self, angle):
         m = Matrix44.from_z_rotation(angle)
-        self.model_matrix = m*self.model_matrix
+        self.model_matrix = m.dot(self.model_matrix)
 
     def rotate_axis(self, axis, angle):
-        m = Matrix44.from_axis_rotation(axis, angle)
-        self.model_matrix = m*self.model_matrix
+        m = matrix44.create_from_axis_rotation(axis, angle)
+        self.model_matrix = m.dot(self.model_matrix)
 
     @property
     def offset(self):
-        return self._prog["offset"]
+        return self._offset
 
     @offset.setter
     def offset(self, v):
-        v = np.asarray(v).astype(np.float32)
-        self._prog["offset"].write(v.tobytes())
+        self._offset = np.asarray(v).astype(np.float32)
+        if self._prog:
+            self._prog["offset"].write(self._offset.tobytes())
 
     def sort_triangles(self, point):
         """Sort the triangles wrt point from further to closest."""
@@ -335,7 +340,7 @@ class Mesh(Renderable):
 
     @classmethod
     def from_superquadrics(cls, alpha, epsilon, translation, rotation, colors,
-                           vertex_count=10000):
+                           offset=[0, 0, 0.], vertex_count=10000):
         """Create Superquadrics.
 
         Arguments
@@ -416,5 +421,4 @@ class Mesh(Renderable):
         if len(colors) == M:
             colors = np.repeat(colors, len(vertices) // M, axis=0)
 
-        return cls(vertices, normals, colors)
-
+        return cls(vertices, normals, colors, offset)
