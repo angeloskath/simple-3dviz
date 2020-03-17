@@ -1,12 +1,8 @@
 
 import numpy as np
 
+from ..io import read_mesh_file
 from .base import Renderable
-
-try:
-    import trimesh
-except ImportError:
-    pass
 
 from pyrr import Matrix44, matrix44
 
@@ -164,17 +160,26 @@ class Mesh(Renderable):
 
     @classmethod
     def from_file(cls, filepath, color=None, use_vertex_normals=False):
-        mesh = trimesh.load(filepath)
+        # Read the mesh
+        mesh = read_mesh_file(filepath)
+
+        # Extract the triangles
         vertices = mesh.vertices[mesh.faces.ravel()]
+
+        # Set a normal per triangle vertex
         if use_vertex_normals:
             normals = mesh.vertex_normals[mesh.faces.ravel()]
         else:
-            normals = np.repeat(mesh.face_normals, 3, axis=0)
+            normals = np.repeat(Mesh._triangle_normals(vertices), 3, axis=0)
+
+        # Set a color per triangle vertex
         if color is not None:
             colors = np.ones_like(vertices) * color
-        elif mesh.visual is not None:
-            colors = mesh.visual.vertex_colors[mesh.faces.ravel()]
-            colors = colors[:, :4].astype(np.float32)/255
+        else:
+            try:
+                colors = np.repeat(mesh.face_colors, 3, axis=0)
+            except NotImplementedError:
+                pass
 
         return cls(vertices, normals, colors)
 

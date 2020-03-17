@@ -41,7 +41,6 @@ def get_install_requirements():
     return [
         "moderngl",
         "numpy",
-        "trimesh==2.38.42",
         "pyrr"
     ]
 
