@@ -1,0 +1,13 @@
+site_name: simple-3dviz
+repo_url: https://github.com/angeloskath/simple-3dviz/
+theme: readthedocs
+site_dir: output
+extra_javascript: 
+    - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+markdown_extensions:
+    - mdx_math
+nav:
+- Home: 'index.md'
+- User Guide: 'user_guide.md'
+- Examples: 'examples.md'
+- Contribution: 'contribution.md'
