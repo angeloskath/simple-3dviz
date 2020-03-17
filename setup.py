@@ -54,9 +54,11 @@ def setup_package():
         version=meta["version"],
         description=meta["description"],
         long_description=long_description,
+        long_description_content_type="text/markdown",
         maintainer=meta["maintainer"],
         maintainer_email=meta["email"],
         url=meta["url"],
+        keywords=meta["keywords"],
         license=meta["license"],
         classifiers=[
             "Intended Audience :: Science/Research",
