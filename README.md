@@ -2,7 +2,7 @@ simple-3dviz
 ---------------
 
 simple-3dviz provides a set of simple and reusable tools for visualizing 3D
-data using Python and OpenGL. The goal of the library is to provide an easy
+data using Python and OpenGL. The goal of this library is to provide an easy
 way to visualize 3D objects with thousands of vertices efficiently just with
 few lines of code. 
 
@@ -20,8 +20,10 @@ pip install simple-3dviz
 ```
 If you want to extend our code clone the repository and install it in
 development mode. In addition to the main library, there are also two useful
-console applications that can be used for visualizing meshes (`mesh_viewer`) and functions
-given from the command line (`func_viewer`).
+console applications that can be used for visualizing meshes
+([mesh_viewer](https://github.com/angeloskath/simple-3dviz/scripts/mesh_viewer.py))
+and functions given from the command line
+([func_viewer](https://github.com/angeloskath/simple-3dviz/scripts/func_viewer.py)).
 
 The dependencies of `simple-3dviz` are listed below:
 - [numpy](http://www.numpy.org/)
