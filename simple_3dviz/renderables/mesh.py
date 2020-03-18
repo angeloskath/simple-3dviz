@@ -98,6 +98,13 @@ class Mesh(Renderable):
                 self._prog[k].write(v.tobytes())
 
     @property
+    def bbox(self):
+        return [
+            self._vertices.min(axis=0),
+            self._vertices.max(axis=0)
+        ]
+
+    @property
     def model_matrix(self):
         return self._model_matrix
 

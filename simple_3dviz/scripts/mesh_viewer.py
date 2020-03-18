@@ -71,12 +71,26 @@ def main(argv=None):
         default=None
     )
     parser.add_argument(
+        "--manual",
+        action="store_false",
+        dest="auto",
+        help="Auto determine the camera position and target"
+    )
+    parser.add_argument(
         "--save_frame",
         default=path.join(gettempdir(), "frame_{:03d}.png"),
         help="The location to save the snapshot frame"
     )
 
     args = parser.parse_args(argv)
+
+    mesh = Mesh.from_file(args.file)
+
+    if args.auto:
+        bbox = mesh.bbox
+        center = (bbox[1]-bbox[0])/2 + bbox[0]
+        args.camera_target = center
+        args.camera_position = center + (bbox[1]-center)*2
 
     behaviours = [
         SnapshotOnKey(path=args.save_frame, keys={"<ctrl>", "S"})
@@ -85,7 +99,7 @@ def main(argv=None):
         behaviours.append(LightToCamera())
 
     show(
-        Mesh.from_file(args.file),
+        mesh,
         size=args.size, background=args.background, title="Mesh Viewer",
         camera_position=args.camera_position, camera_target=args.camera_target,
         up_vector=args.up, light=args.light,
