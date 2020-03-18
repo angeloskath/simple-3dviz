@@ -159,27 +159,24 @@ class Mesh(Renderable):
         return np.cross(ba, bc, axis=-1)
 
     @classmethod
-    def from_file(cls, filepath, color=None, use_vertex_normals=False):
+    def from_file(cls, filepath, color=(0.3, 0.3, 0.3)):
         # Read the mesh
         mesh = read_mesh_file(filepath)
 
         # Extract the triangles
-        vertices = mesh.vertices[mesh.faces.ravel()]
+        vertices = mesh.vertices
 
         # Set a normal per triangle vertex
-        if use_vertex_normals:
-            normals = mesh.vertex_normals[mesh.faces.ravel()]
-        else:
+        try:
+            normals = mesh.normals
+        except NotImplementedError:
             normals = np.repeat(Mesh._triangle_normals(vertices), 3, axis=0)
 
         # Set a color per triangle vertex
-        if color is not None:
+        try:
+            colors = mesh.colors
+        except NotImplementedError:
             colors = np.ones_like(vertices) * color
-        else:
-            try:
-                colors = np.repeat(mesh.face_colors, 3, axis=0)
-            except NotImplementedError:
-                pass
 
         return cls(vertices, normals, colors)
 

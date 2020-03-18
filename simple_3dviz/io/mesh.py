@@ -9,9 +9,8 @@ class MeshReader(object):
     files."""
     def __init__(self, filename=None):
         self._vertices = None
-        self._vertex_normals = None
-        self._faces = None
-        self._face_colors = None
+        self._normals = None
+        self._colors = None
 
         if filename is not None:
             self.read(filename)
@@ -26,22 +25,16 @@ class MeshReader(object):
         return self._vertices
 
     @property
-    def vertex_normals(self):
-        if self._vertex_normals is None:
+    def normals(self):
+        if self._normals is None:
             raise NotImplementedError()
-        return self._vertex_normals
+        return self._normals
 
     @property
-    def faces(self):
-        if self._faces is None:
+    def colors(self):
+        if self._colors is None:
             raise NotImplementedError()
-        return self._faces
-
-    @property
-    def face_colors(self):
-        if self._face_colors is None:
-            raise NotImplementedError()
-        return self._face_colors
+        return self._colors
 
 
 class PlyMeshReader(MeshReader):
@@ -75,23 +68,103 @@ class PlyMeshReader(MeshReader):
                 for indices in data[F][VI]
             )
             if triangles == len(data[F][VI]):
-                self._faces = np.vstack(data[F][VI])
+                faces = np.vstack(data[F][VI])
             else:
                 raise NotImplementedError(("Dealing with non-triangulated "
                                            "faces is not supported"))
+            self._vertices = self._vertices[faces].reshape(-1, 3)
             try:
-                self._face_colors = np.zeros(
+                colors = np.zeros(
                     (data[F].count, 4),
                     dtype=np.float32
                 )
-                self._face_colors[:, 0] = data[F]["red"]
-                self._face_colors[:, 1] = data[F]["green"]
-                self._face_colors[:, 2] = data[F]["blue"]
-                self._face_colors[:, 3] = 255
+                colors[:, 0] = data[F]["red"]
+                colors[:, 1] = data[F]["green"]
+                colors[:, 2] = data[F]["blue"]
+                colors[:, 3] = 255
                 try:
-                    self._face_colors[:, 3] = data[F]["alpha"]
+                    colors[:, 3] = data[F]["alpha"]
                 except ValueError:
                     pass
-                self._face_colors /= 255
+                colors /= 255
+                self._colors = np.repeat(colors, 3, axis=0)
             except ValueError:
                 pass
+
+
+class ObjMeshReader(MeshReader):
+    """Read OBJ mesh files."""
+    def read(self, filename):
+        def extract_vertex(face):
+            return int(face.split("/")[0])-1
+
+        def extract_normal(face):
+            return int(face.split("/")[2])-1
+
+        with open(filename, "r") as f:
+            lines = f.readlines()
+
+            # Collect all the vertices, namely lines starting with 'v' followed
+            # by 3 floats and arrange them according to faces
+            vertices = np.array([
+                list(map(float, l.strip().split()[1:4]))
+                for l in lines if l.startswith("v ")
+            ], dtype=np.float32)
+            faces = np.array([
+                list(map(extract_vertex, l.strip().split()[1:]))
+                for l in lines if l.startswith("f ")
+            ])
+            self._vertices = vertices[faces].reshape(-1, 3)
+
+            # Collect all the vertex normals, namely lines starting with 'vn'
+            # followed by 3 floats and arrange the according to faces
+            try:
+                normals = np.array([
+                    list(map(float, l.strip().split()[1:]))
+                    for l in lines if l.startswith("vn ")
+                ])
+                faces = np.array([
+                    list(map(extract_normal, l.strip().split()[1:]))
+                    for l in lines if l.startswith("f ")
+                ])
+                self._normals = normals[faces].reshape(-1, 3)
+            except IndexError:
+                pass
+
+
+class OffMeshReader(MeshReader):
+    """Read OFF mesh files."""
+    def read(self, filename):
+        with open(filename, "r") as f:
+            lines = f.readlines()
+            assert lines[0].strip() == "OFF"
+
+            # Clean lines from comments and empty lines
+            lines = [l.strip() for l in lines if l[0]!="#" and l.strip() != ""]
+
+            # Extract the number of vertices and faces
+            n_vertices, n_faces, n_edges = [int(x) for x in lines[1].split()]
+
+            # Collect the vertices and faces
+            vertices = np.array([
+                [float(x) for x in l.split()]
+                for l in lines[2:2+n_vertices]
+            ], dtype=np.float32)
+            faces = np.array([
+                [float(x) for x in l.split()]
+                for l in lines[2+n_vertices:2+n_vertices+n_faces]
+            ], dtype=np.float32)
+
+            if not np.all(faces[:, 0] == 3):
+                raise NotImplementedError(("Dealing with non-triangulated "
+                                           "faces is not supported"))
+
+            # Set the triangles
+            vertex_indices = faces[:, 1:4].astype(int).ravel()
+            self._vertices = vertices[:, :3][vertex_indices]
+
+            # Set the colors
+            if vertices.shape[1] > 3:
+                self._colors = vertices[:, 4:][vertex_indices]
+            elif faces.shape[1] > 4:
+                self._colors = np.repeat(faces[:, 4:], 3, axis=0)
