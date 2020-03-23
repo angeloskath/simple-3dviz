@@ -137,22 +137,22 @@ class OffMeshReader(MeshReader):
     def read(self, filename):
         with open(filename, "r") as f:
             lines = f.readlines()
-            assert lines[0].strip() == "OFF"
+            assert lines[0].startswith("OFF")
 
             # Clean lines from comments and empty lines
             lines = [l.strip() for l in lines if l[0]!="#" and l.strip() != ""]
 
             # Extract the number of vertices and faces
-            n_vertices, n_faces, n_edges = [int(x) for x in lines[1].split()]
+            n_vertices, n_faces, n_edges = [int(x) for x in lines[0].split()[1:]]
 
             # Collect the vertices and faces
             vertices = np.array([
                 [float(x) for x in l.split()]
-                for l in lines[2:2+n_vertices]
+                for l in lines[1:1+n_vertices]
             ], dtype=np.float32)
             faces = np.array([
                 [float(x) for x in l.split()]
-                for l in lines[2+n_vertices:2+n_vertices+n_faces]
+                for l in lines[1+n_vertices:1+n_vertices+n_faces]
             ], dtype=np.float32)
 
             if not np.all(faces[:, 0] == 3):
