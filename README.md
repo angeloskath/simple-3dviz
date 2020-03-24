@@ -7,10 +7,10 @@ way to visualize 3D objects with thousands of vertices efficiently just with
 few lines of code. 
 
 Key features include:
-- Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
+- Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html), [binary/ASCII STL](https://en.wikipedia.org/wiki/STL_(file_format)) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
 - A lightweight and easy-to-use scene viewer using [wxpython](https://wxpython.org/) with support for animation and storing images.
 - An offscreen rendering module.
-- Easy-to-change shaders for meshes, pointclouds and lines.
+- Helper functions to render pointclouds, lines, voxels and superquadrics.
 
 ## Dependencies & Installation
 
