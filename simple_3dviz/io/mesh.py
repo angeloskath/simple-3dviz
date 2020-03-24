@@ -168,3 +168,69 @@ class OffMeshReader(MeshReader):
                 self._colors = vertices[:, 4:][vertex_indices]
             elif faces.shape[1] > 4:
                 self._colors = np.repeat(faces[:, 4:], 3, axis=0)
+
+
+class StlMeshReader(MeshReader):
+    """Read STL mesh files."""
+    def read(self, filename):
+        # Decide if it is an ASCII STL or not
+        ascii_stl = True
+        with open(filename, "rb") as f:
+            ascii_stl = f.read(6) == b"solid "
+
+        if ascii_stl:
+            with open(filename, "r") as f:
+                vertices = []
+                normals = []
+                START_SOLID = 1
+                START_FACE = 2
+                START_VERTEX = 3
+                END_VERTEX = 4
+                END_FACE = 5
+                END_SOLID = 6
+                normal = None
+                state = START_SOLID
+                for line in f:
+                    fields = line.strip().split()
+                    if state == START_SOLID:
+                        if fields[0] != "solid":
+                            raise ValueError("Non ASCII STL")
+                        state = START_FACE
+                    elif state == START_FACE:
+                        if fields[0] == "endsolid":
+                            state = START_SOLID
+                            continue
+                        else:
+                            assert fields[0] == "facet" and fields[1] == "normal"
+                            normal = [float(x) for x in fields[2:5]]
+                            state = START_VERTEX
+                    elif state == START_VERTEX:
+                        if fields[0] == "outer" and fields[1] == "loop":
+                            continue
+                        elif fields[0] == "vertex":
+                            v = [float(x) for x in fields[1:4]]
+                            vertices.append(v)
+                            normals.append(normal)
+                        elif fields[0] == "endloop":
+                            state = END_FACE
+                    elif state == END_FACE:
+                        if fields[0] == "outer" and fields[1] == "loop":
+                            state = START_VERTEX
+                        else:
+                            assert fields[0] == "endfacet"
+                            state = START_FACE
+                self._vertices = np.array(vertices)
+                self._normals = np.array(normals)
+        else:
+            with open(filename, "rb") as f:
+                header = f.read(80)
+                assert len(header) == 80
+                triangles = np.frombuffer(f.read(4), "<i4", 1)[0]
+                dtype = np.dtype([
+                    ("normal", "<f4", (3,)),
+                    ("vertices", "<f4", (3, 3)),
+                    ("attr", "<u2")
+                ])
+                mesh = np.frombuffer(f.read(), dtype, triangles)
+                self._vertices = mesh["vertices"].reshape(-1, 3)
+                self._normals = np.repeat(mesh["normal"], 3, 0).reshape(-1, 3)
