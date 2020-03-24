@@ -158,6 +158,9 @@ class Mesh(Renderable):
             self._vertices, self._normals, self._colors
         ]).astype(np.float32).tobytes())
 
+    def scale(self, s):
+        self._vertices *= s
+
     @staticmethod
     def _triangle_normals(triangles):
         triangles = triangles.reshape(-1, 3, 3)

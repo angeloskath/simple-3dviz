@@ -3,6 +3,8 @@ import argparse
 from os import path
 from tempfile import gettempdir
 
+import numpy as np
+
 from .. import Mesh
 from ..behaviours.keyboard import SnapshotOnKey
 from ..behaviours.misc import LightToCamera
@@ -71,6 +73,12 @@ def main(argv=None):
         default=None
     )
     parser.add_argument(
+        "--color",
+        type=f_tuple(3),
+        default=(0.3, 0.3, 0.3),
+        help="Choose a color for the mesh"
+    )
+    parser.add_argument(
         "--manual",
         action="store_false",
         dest="auto",
@@ -84,13 +92,19 @@ def main(argv=None):
 
     args = parser.parse_args(argv)
 
-    mesh = Mesh.from_file(args.file)
+    mesh = Mesh.from_file(args.file, color=args.color)
 
     if args.auto:
         bbox = mesh.bbox
         center = (bbox[1]-bbox[0])/2 + bbox[0]
         args.camera_target = center
         args.camera_position = center + (bbox[1]-center)*2
+        D = np.sqrt(np.sum((args.camera_position - args.camera_target)**2))
+        if D > 100:
+            s = 100. / D
+            args.camera_target *= s
+            args.camera_position *= s
+            mesh.scale(s)
 
     behaviours = [
         SnapshotOnKey(path=args.save_frame, keys={"<ctrl>", "S"})
