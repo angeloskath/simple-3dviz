@@ -7,6 +7,7 @@ way to visualize 3D objects with thousands of vertices efficiently just with
 few lines of code.
 
 ![Baby Green Yoda](models/baby_yoda_rotating.gif)
+![Baby Blue Yoda](models/baby_yoda_back_and_forth.gif)
 
 Key features include:
 - Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html), [binary/ASCII STL](https://en.wikipedia.org/wiki/STL_(file_format)) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
@@ -105,9 +106,25 @@ render(m,
        ],
        n_frames=512,
        camera_position=(-60., -160, 120), camera_target=(0., 0, 40),
-       light=(-60, -160, 120))
+       light=(-60, -160, 120)
+)
 
-# Some other things worth trying 
+# It is also possible to implement some more exciting motions, e.g. having the
+# camera move back and forth across a line
+from simple_3dviz.behaviours.trajectory import BackAndForth, Lines
+render(m,
+       behaviours=[
+            CameraTrajectory(
+                BackAndForth(Lines([-60, -160, 120], [-60, -80, 120])),
+                speed=0.005
+            )
+            LightToCamera(),
+            SaveFrames("/tmp/frame_{:03d}.png", every_n=5)
+       ],
+       n_frames=512,
+       camera_position=(-60., -160, 120), camera_target=(0., 0, 40),
+       light=(-60, -160, 120)
+)
 ```
 
 ## Documentation
