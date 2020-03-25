@@ -27,11 +27,11 @@ and functions given from the command line
 
 The dependencies of `simple-3dviz` are listed below:
 - [numpy](http://www.numpy.org/)
-- [pyrr](https://github.com/adamlwgriffiths/Pyrr)
 - [moderngl](https://github.com/moderngl/moderngl)
-- [wxpython](https://wxpython.org/) (if you want to have a GUI)
+- [plyfile](https://github.com/dranjan/python-plyfile)
+- [pyrr](https://github.com/adamlwgriffiths/Pyrr)
 - [PIL](https://pillow.readthedocs.io/en/stable/index.html) or [OpenCV](https://opencv.org/) (if you want to store the rendering to image files)
-
+- [wxpython](https://wxpython.org/) (if you want to have a GUI)
 
 ## Quick Start
 

@@ -41,12 +41,14 @@ def get_install_requirements():
     return [
         "moderngl",
         "numpy",
-        "pyrr"
+        "pyrr",
+        "plyfile",
+        "Pillow"
     ]
 
 
 def setup_package():
-    with open("README.rst") as f:
+    with open("README.md") as f:
         long_description = f.read()
     meta = collect_metadata()
     setup(
