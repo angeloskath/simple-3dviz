@@ -3,8 +3,8 @@ simple-3dviz
 
 simple-3dviz provides a set of simple and reusable tools for visualizing 3D
 data using Python and OpenGL. The goal of this library is to provide an easy
-way to visualize 3D objects with thousands of vertices efficiently just with
-few lines of code.
+way to visualize 3D objects with hundreds of thousands of vertices efficiently
+just with few lines of code.
 
 ![Baby Green Yoda](models/baby_yoda_rotating.gif)
 ![Baby Blue Yoda](models/baby_yoda_back_and_forth.gif)
@@ -43,8 +43,9 @@ The dependencies of `simple-3dviz` are listed below:
 ## Quick Start
 
 You can find various examples of how to use our library in the provided
-[scripts](https://github.com/angeloskath/simple-3dviz/scripts). Below is a
-concise example that showcases the different features of `simple-3dviz`.
+[scripts](https://github.com/angeloskath/simple-3dviz/simple_3dviz/scripts) and
+[examples]([scripts](https://github.com/angeloskath/simple_3dviz/examples).
+Below we showcase some basic functionalities implemented in `simple-3dviz`.
 
 ```python
 from simple_3dviz import Mesh
@@ -229,6 +230,8 @@ show(
     ]
 )
 ```
+
+## Keybord and Mouse Controls for Offscreen Rendering
 
 ## Documentation
 
