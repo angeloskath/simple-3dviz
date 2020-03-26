@@ -11,6 +11,7 @@ few lines of code.
 ![Colourful Baby Yodas](models/yodas_bezier_curve.gif)
 ![Voxel Grid](models/rotating_voxels.gif)
 ![Voxel Grid and Spheres](models/rotating_voxels_spheres.gif)
+![Superquadrics and Lines](models/primitives_lines.gif)
 
 Key features include:
 - Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html), [binary/ASCII STL](https://en.wikipedia.org/wiki/STL_(file_format)) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
