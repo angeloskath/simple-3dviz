@@ -8,6 +8,7 @@ few lines of code.
 
 ![Baby Green Yoda](models/baby_yoda_rotating.gif)
 ![Baby Blue Yoda](models/baby_yoda_back_and_forth.gif)
+![Colourful Baby Yodas](models/yodas_bezier_curve.gif)
 
 Key features include:
 - Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html), [binary/ASCII STL](https://en.wikipedia.org/wiki/STL_(file_format)) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
@@ -123,6 +124,47 @@ render(m,
        ],
        n_frames=512,
        camera_position=(-60., -160, 120), camera_target=(0., 0, 40),
+       light=(-60, -160, 120)
+)
+
+# Let's now try something more exciting! We start, by loading our baby Yoda
+# mesh multiple times with different colors
+m1 = Mesh.from_file("models/baby_yoda.stl", color=(0.1,0.5,0.1))
+m2 = Mesh.from_file("models/baby_yoda.stl", color=(0,1.0,1.0))
+m3 = Mesh.from_file("models/baby_yoda.stl", color=(0.5,0.1,0.1))
+
+# We space the meshes across a line in the 3D space, by properly adjusting
+# their offset parameter
+m2.offset = (-100, 0, 0)
+m3.offset = (100, 0, 0)
+
+# We can have the camera moving between the three meshes, following a bezier
+# curve, defined using the following control points
+from simple_3dviz.behaviours.trajectory import QuadraticBezierCurves, Repeat
+traj = Repeat(QuadraticBezierCurves(
+    (-1.5*120, 0, 70),
+    (-1*120, 80, 70),
+    (-0.5*120, 0, 70),
+    (0, -80, 70),
+    (0.5*120, 0, 70),
+    (1*120, 80, 70),
+    (1.5*120, 0, 70),
+    (1*120, -80, 70),
+    (0.5*120, 0, 70),
+    (0, 80, 70),
+    (-0.5*120, 0, 70),
+    (-1*120, -80, 70),
+    (-1.5*120, 0, 70)
+))
+
+# We now render the three meshes as follows
+render([m1, m2, m3],
+       behaviours=[
+            CameraTrajectory(traj, speed=0.001),
+            SaveFrames("/tmp/frame_{:03d}.png", every_n=10)
+       ],
+       n_frames=999,
+       camera_target=(0., 0., 70.0),
        light=(-60, -160, 120)
 )
 ```
