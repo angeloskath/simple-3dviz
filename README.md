@@ -9,6 +9,8 @@ few lines of code.
 ![Baby Green Yoda](models/baby_yoda_rotating.gif)
 ![Baby Blue Yoda](models/baby_yoda_back_and_forth.gif)
 ![Colourful Baby Yodas](models/yodas_bezier_curve.gif)
+![Voxel Grid](models/rotating_voxels.gif)
+![Voxel Grid and Spheres](models/rotating_voxels_spheres.gif)
 
 Key features include:
 - Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html), [binary/ASCII STL](https://en.wikipedia.org/wiki/STL_(file_format)) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
@@ -45,8 +47,8 @@ concise example that showcases the different features of `simple-3dviz`.
 
 ```python
 from simple_3dviz import Mesh
-from simple_3dviz.utils import render
 from simple_3dviz.window import show
+from simple_3dviz.utils import render
 
 # We can load meshes from a file by specifying its path or by explicitely
 # giving the vertices and the normals of the mesh you want to render
@@ -166,6 +168,64 @@ render([m1, m2, m3],
        n_frames=999,
        camera_target=(0., 0., 70.0),
        light=(-60, -160, 120)
+)
+
+# Using simple-3dviz, we can also visualize point clouds and voxels, lines and
+# primitives.
+# Let us reproduce the voxel grid example from matplotlib that can be
+# found here (https://matplotlib.org/3.2.1/gallery/mplot3d/voxels.html)
+import numpy as np
+x, y, z = np.indices((8, 8, 8))
+cube1 = (x < 3) & (y < 3) & (z < 3)
+cube2 = (x >= 5) & (y >= 5) & (z >= 5)
+link = abs(x - y) + abs(y - z) + abs(z - x) <= 2
+voxels = cube1 | cube2 | link
+
+# Build a voxel grid from the voxels
+m = Mesh.from_voxel_grid(
+    voxels=voxels,
+    sizes=(0.49,0.49,0.49),
+    colors=[colormap[c] for c in colors[voxels]]
+)
+
+# Set the colors of each object
+colors = np.empty(voxels.shape + (3,), dtype=np.float32)
+colors[link] = (1, 0, 0)
+colors[cube1] = (0, 0, 1)
+colors[cube2] = (0, 1, 0)
+
+show(
+    Mesh.from_voxel_grid(voxels=voxels, colors=colors),
+    light=(-1, -1, 1),
+    behaviours=[
+        CameraTrajectory(
+            Circle(center=(0, 0, 0), point=(2, -1, 0), normal=(0, 0, -1)),
+            speed=0.004)
+    ]
+)
+
+# To visualize a pointloud we can simply use the Spherecloud object
+from simple_3dviz import Spherecloud
+# We start by generating points uniformly distributed in the unit cube
+x = np.linspace(-0.7, 0.7, num=10)
+centers = np.array(np.meshgrid(x, x, x)).reshape(3, -1).T
+spheres_colors = np.array([[1, 1, 0, 1],
+                   [0, 1, 1, 1]])[np.random.randint(0, 2, size=centers.shape[0])]
+spheres_sizes = np.ones(centers.shape[0])*0.02
+
+show(
+    [
+        Mesh.from_voxel_grid(voxels=voxels, colors=colors),
+        Spherecloud(
+            centers=centers, colors=spheres_colors, sizes=spheres_sizes
+        )
+    ],
+    light=(-1, -1, 1),
+    behaviours=[
+        CameraTrajectory(
+            Circle(center=(0, 0, 0), point=(2, -2, 0), normal=(0, 0, -1)),
+            speed=0.004)
+    ]
 )
 ```
 
