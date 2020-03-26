@@ -233,7 +233,7 @@ show(
 
 ## Keybord and Mouse Controls for the Scene Viewer
 
-When using the scene viewer via the `show(...)` fuction, it is possible to
+When using the scene viewer via the `show` fuction, it is possible to
 perform various actions either using the mouse of the keybord.
 
 - Rotate: Press the left button click
@@ -245,8 +245,6 @@ The available keyboard commands are:
   direction that indicates which direction is "up" at the current timestamp.
 - `T`: Make sure that the triangles will be sorted so that the transparency
   works as well.
-
-
 
 ## Documentation
 
