@@ -336,10 +336,11 @@ class Mesh(Renderable):
         ))
 
         assert len(centers.shape) == 2 and centers.shape[1] == 3
-        assert len(sizes.shape) == 2 and sizes.shape[1] == 3
+        if len(sizes.shape) == 1:
+            sizes = sizes[np.newaxis].repeat(len(centers), axis=0)
         vertices = centers[:, np.newaxis]+sizes[:, np.newaxis]*box[np.newaxis]
         vertices = vertices.reshape(-1, 3)
-        normals = np.repeat(normals, len(centers), axis=0)
+        normals = np.vstack([normals]*len(centers))
 
         if len(colors.shape) == 1:
             if colors.size < 4:
@@ -349,6 +350,48 @@ class Mesh(Renderable):
             colors = np.repeat(colors, len(box), axis=0)
 
         return cls(vertices, normals, colors)
+
+    @classmethod
+    def from_voxel_grid(cls, voxels, sizes=None, colors=(0.3, 0.3, 0.3),
+                        bbox=[[-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]]):
+        """ Create a voxel grid
+
+        Arguments
+        ---------
+            voxels: Array of 3D values, with truthy values indicating which
+                    voxels to fill
+        """
+        # Make sure voxels, colors and bbox are arrays
+        voxels, colors, bbox = list(map(np.asarray, [voxels, colors, bbox]))
+
+        # Ensure that the voxel grid is indeed a 3D grid
+        assert len(voxels.shape) == 3
+        M, N, K = voxels.shape
+
+        # Clean and standardize the sizes
+        if sizes is None:
+            sizes = (bbox[1]-bbox[0]) * 0.48 / [M, N, K]
+
+        # Convert the indices to center coordinates
+        x, y, z = np.indices((M, N, K)).astype(np.float32)
+        x = x / M * (bbox[1][0] - bbox[0][0]) + bbox[0][0]
+        y = y / N * (bbox[1][1] - bbox[0][1]) + bbox[0][1]
+        z = z / K * (bbox[1][2] - bbox[0][2]) + bbox[0][2]
+        centers = np.vstack([x[voxels], y[voxels], z[voxels]]).T
+
+        # Convert the sizes to per box sizes
+        if len(sizes.shape) == 1:
+            sizes = np.array([sizes for _ in range(len(centers))])
+        elif len(sizes.shape) == 4:
+            sizes = sizes[voxels]
+
+        # Convert the colors to per box colors
+        if len(colors.shape) == 1:
+            colors = np.array([colors for _ in range(len(centers))])
+        elif len(colors.shape) == 4:
+            colors = colors[voxels]
+
+        return cls.from_boxes(centers=centers, sizes=sizes, colors=colors)
 
     @classmethod
     def from_superquadrics(cls, alpha, epsilon, translation, rotation, colors,
