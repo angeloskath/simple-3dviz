@@ -233,7 +233,7 @@ show(
 
 ## Keybord and Mouse Controls for the Scene Viewer
 
-When using the scene viewer via the 'show(...)' fuction, it is possible to
+When using the scene viewer via the `show(...)` fuction, it is possible to
 perform various actions either using the mouse of the keybord.
 
 - Rotate: Press the left button click
@@ -241,9 +241,9 @@ perform various actions either using the mouse of the keybord.
 - Zoom in/out: Scroll the mouse wheel
 
 The available keyboard commands are:
-- 'R': Reports the camera position, its vieweing direction and the the 3d
+- `R`: Reports the camera position, its vieweing direction and the the 3d
   direction that indicates which direction is "up" at the current timestamp.
-- 'T': Make sure that the triangles will be sorted so that the transparency
+- `T`: Make sure that the triangles will be sorted so that the transparency
   works as well.
 
 
