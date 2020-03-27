@@ -8,7 +8,6 @@ markdown_extensions:
     - mdx_math
 pages:
 - Home: 'index.md'
-- Code walkthrough: 'code-walkthrough.md'
 - User Guide:
   - Loading and Configuring Models: data_loading.md
   - Creating Scenes: scene.md
@@ -16,5 +15,6 @@ pages:
   - Lights Manipulation: lights.md
   - Off-screen Rendering: offscreen_rendering.md
   - Animations: animations.md
+- Code walkthrough: 'code-walkthrough.md'
 - Examples: 'examples.md'
 - Contribution: 'contribution.md'
