@@ -174,7 +174,7 @@ m = Mesh.from_voxel_grid(
     colors=[colormap[c] for c in colors[voxels]]
 )
 
-# Set the colors of each object
+# Set the colors for evey object and visualize the screen
 colors = np.empty(voxels.shape + (3,), dtype=np.float32)
 colors[link] = (1, 0, 0)
 colors[cube1] = (0, 0, 1)
@@ -198,22 +198,10 @@ centers = np.array(np.meshgrid(x, x, x)).reshape(3, -1).T
 spheres_colors = np.array([[1, 1, 0, 1],
                    [0, 1, 1, 1]])[np.random.randint(0, 2, size=centers.shape[0])]
 spheres_sizes = np.ones(centers.shape[0])*0.02
-
-show(
-    [
-        Mesh.from_voxel_grid(voxels=voxels, colors=colors),
-        Spherecloud(
-            centers=centers, colors=spheres_colors, sizes=spheres_sizes
-        )
-    ],
-    light=(-1, -1, 1),
-    behaviours=[
-        CameraTrajectory(
-            Circle(center=(0, 0, 0), point=(2, -2, 0), normal=(0, 0, -1)),
-            speed=0.004)
-    ]
-)
 ```
+
+## Keybord and Mouse Controls for the Scene Viewer
+
 When using the scene viewer via the `show` fuction, it is possible to
 perform various actions either using the mouse of the keybord.
 

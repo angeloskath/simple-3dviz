@@ -5,16 +5,3 @@ is mainly focused on those of you, who want to get a better understanding of
 the main modules implemented in our codebase in order to help you familiarize
 with it.
 
-## Code Walk-through
-
-## Loading 3D Data
-
-## Creating Scenes
-
-## Creating Lights
-
-## Creating Cameras
-
-## Animations
-
-## Offscreen Rendering

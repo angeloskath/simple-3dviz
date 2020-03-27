@@ -6,8 +6,15 @@ extra_javascript:
     - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML
 markdown_extensions:
     - mdx_math
-nav:
-    - Home: 'index.md'
-    - User Guide: 'user_guide.md'
-    - Examples: 'examples.md'
-    - Contribution: 'contribution.md'
+pages:
+- Home: 'index.md'
+- Code walkthrough: 'code-walkthrough.md'
+- User Guide:
+  - Loading and Configuring Models: data_loading.md
+  - Creating Scenes: scene.md
+  - Cameras Manipulation: camera.md
+  - Lights Manipulation: lights.md
+  - Off-screen Rendering: offscreen_rendering.md
+  - Animations: animations.md
+- Examples: 'examples.md'
+- Contribution: 'contribution.md'
