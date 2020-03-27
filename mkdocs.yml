@@ -1,20 +1,18 @@
 site_name: simple-3dviz
+site_url: http://simple-3dviz.com/
 repo_url: https://github.com/angeloskath/simple-3dviz/
 theme: readthedocs
 site_dir: output
-extra_javascript: 
-    - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML
-markdown_extensions:
-    - mdx_math
 pages:
 - Home: 'index.md'
 - User Guide:
-  - Loading and Configuring Models: data_loading.md
-  - Creating Scenes: scene.md
-  - Cameras Manipulation: camera.md
-  - Lights Manipulation: lights.md
-  - Off-screen Rendering: offscreen_rendering.md
-  - Animations: animations.md
+  - Loading and Configuring Models: 'data_loading.md'
+  - Creating Scenes: 'scene.md'
+  - Cameras Manipulation: 'camera.md'
+  - Lights Manipulation: 'lights.md'
+  - Off-screen Rendering: 'offscreen_rendering.md'
+  - Animations: 'animations.md'
 - Code walkthrough: 'code-walkthrough.md'
+- API Docs: '/api-docs/'
 - Examples: 'examples.md'
 - Contribution: 'contribution.md'

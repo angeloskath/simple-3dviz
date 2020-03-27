@@ -161,6 +161,12 @@ class Mesh(Renderable):
     def scale(self, s):
         self._vertices *= s
 
+    def to_unit_cube(self):
+        bbox = self.bbox
+        dims = bbox[1] - bbox[0]
+        self._vertices += dims/2 - bbox[0]
+        self._vertices /= dims.max()
+
     @staticmethod
     def _triangle_normals(triangles):
         triangles = triangles.reshape(-1, 3, 3)
@@ -186,7 +192,7 @@ class Mesh(Renderable):
         try:
             colors = mesh.colors
         except NotImplementedError:
-            colors = np.ones_like(vertices) * color
+            colors = np.ones((len(vertices), 1)) * color
 
         return cls(vertices, normals, colors)
 
