@@ -136,23 +136,36 @@ class OffMeshReader(MeshReader):
     """Read OFF mesh files."""
     def read(self, filename):
         with open(filename, "r") as f:
+            # Read lines and clean them from comments and empty lines
             lines = f.readlines()
-            assert lines[0].startswith("OFF")
-
-            # Clean lines from comments and empty lines
             lines = [l.strip() for l in lines if l[0]!="#" and l.strip() != ""]
 
-            # Extract the number of vertices and faces
-            n_vertices, n_faces, n_edges = [int(x) for x in lines[0].split()[1:]]
+            # Ensure it is an OFF file
+            if not lines[0].startswith("OFF"):
+                raise ValueError("Invalid OFF file.")
+
+            # Extract the number of vertices, faces and edges
+            if len(lines[0].split()) > 1:
+                n_vertices, n_faces, n_edges = [
+                    int(x)
+                    for x in lines[0].split()[1:]
+                ]
+                lines = lines[1:]
+            else:
+                n_vertices, n_faces, n_edges = [
+                    int(x)
+                    for x in lines[1].split()
+                ]
+                lines = lines[2:]
 
             # Collect the vertices and faces
             vertices = np.array([
                 [float(x) for x in l.split()]
-                for l in lines[1:1+n_vertices]
+                for l in lines[:n_vertices]
             ], dtype=np.float32)
             faces = np.array([
                 [float(x) for x in l.split()]
-                for l in lines[1+n_vertices:1+n_vertices+n_faces]
+                for l in lines[n_vertices:n_vertices+n_faces]
             ], dtype=np.float32)
 
             if not np.all(faces[:, 0] == 3):
