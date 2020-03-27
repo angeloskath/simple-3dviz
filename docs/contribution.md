@@ -1,6 +1,6 @@
 ## Contributing
 
-The code for simple-3dviz is mirrored on [GitHub][code]. If you
+simple-3dviz is developed on [GitHub][code]. If you
 have found a bug or you want to contribute a new feature just create a [pull
 request][pulls] or an [issue][issues]. Before submitting code for a pull
 request, make sure that:

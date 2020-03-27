@@ -4,6 +4,15 @@ simple-3dviz is a lightweight and easy-to-use library that provides an easy
 interface for visualizing 3D objects with hundreds of thousands of vertices
 efficiently without the overhead of writing hundreds of lines of code.
 
+<div style="text-align: center;">
+    <img src="img/baby_yoda_rotating.gif" alt="Baby Green Yoda" />
+    <img src="img/baby_yoda_back_and_forth.gif" alt="Baby Blue Yoda" />
+    <img src="img/yodas_bezier_curve.gif" alt="Colourful Baby Yodas" />
+    <img src="img/rotating_voxels.gif" alt="Voxel Grid" />
+    <img src="img/rotating_voxels_spheres.gif" alt="Voxel Grid and Spheres" />
+    <img src="img/sqs.gif" alt="Superquadrics and Lines" />
+</div>
+
 ## Installation Guide
 
 simple-3dviz has the following dependencies:
@@ -18,12 +27,12 @@ simple-3dviz has the following dependencies:
 The easiest way to install it is from PyPI with:
 
 ```bash
-pip install --user simple-3dviz # --user is obviously optinal
+pip install --user simple-3dviz # --user is obviously optional
 ```
 
 ## Quick Start
 
-Below, we show the base functionalities of simple-3dviz, which include, but are
+Below, we show the basic functionalities of simple-3dviz, which include, but are
 not limited to:
 
 - Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html), [binary/ASCII STL](https://en.wikipedia.org/wiki/STL_(file_format)) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
