@@ -1,4 +1,4 @@
-## simple-3dviz
+# simple-3dviz
 
 simple-3dviz is a lightweight and easy-to-use library that provides an easy
 interface for visualizing 3D objects with hundreds of thousands of vertices

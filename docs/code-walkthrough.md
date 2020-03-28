@@ -1,4 +1,4 @@
-# Introduction
+# Code walkthrough
 
 Simple-3dviz uses [moderngl][moderngl] to create OpenGL contexts, frame buffers
 etc. However, ModernGL is a low level abstraction over OpenGL which means that
@@ -63,7 +63,7 @@ The goal of the [Behaviour][api_behaviour] interface is to decouple the changes
 of a scene with the scene management (creation, rendering, etc.). The interface
 defines simply a method `behave(params)` which is called every time that a
 frame is rendered (this is traditionally called a _tick_). The argument
-`params` is an instance of the class [Behaviour.Params][api_params] which
+`params` is an instance of the class [Behaviour.Params][api_behaviour] which
 provides to the behaviour all the necessary information:
 
 * A window if it exists
@@ -82,16 +82,14 @@ mouse interaction and more. A non-exhaustive list follows:
 6. MouseZoom
 7. SnapshotOnKey
 
-
 [moderngl]: https://moderngl.readthedocs.io/en/latest/
-[api_scene]: /
-[api_renderable]: /
+[api_scene]: /api-docs/scenes.html
+[api_renderable]: /api-docs/renderables/index.html
 [uniform_docs]: https://www.khronos.org/opengl/wiki/Uniform_(GLSL)
-[api_mesh]: /
-[api_spheres]: /
-[api_lines]: /
-[api_window]: /
-[api_behaviour]: /
-[api_params]: /
-[api_docs]: /
+[api_mesh]: /api-docs/renderables/mesh.html
+[api_spheres]: /api-docs/renderables/spherecloud.html
+[api_lines]: /api-docs/renderables/lines.html
+[api_window]: /api-docs/window/index.html
+[api_behaviour]: /api-docs/behaviours/index.html
+[api_docs]: /api-docs/
 [github]: https://github.com/angeloskath/simple-3dviz
