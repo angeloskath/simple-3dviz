@@ -4,6 +4,18 @@ import numpy as np
 from plyfile import PlyData
 
 
+def _get_file(filename, mode="r"):
+    if isinstance(filename, str):
+        return open(filename, mode)
+    return filename
+
+
+def _close_file(filename, f):
+    """Close the file if filename is a string."""
+    if hasattr(f, "close") and isinstance(filename, str):
+        f.close()
+
+
 class MeshReader(object):
     """MeshReader defines the common interface for reading all supported mesh
     files."""
@@ -101,7 +113,9 @@ class ObjMeshReader(MeshReader):
         def extract_normal(face):
             return int(face.split("/")[2])-1
 
-        with open(filename, "r") as f:
+        try:
+            f = _get_file(filename)
+
             lines = f.readlines()
 
             # Collect all the vertices, namely lines starting with 'v' followed
@@ -130,12 +144,16 @@ class ObjMeshReader(MeshReader):
                 self._normals = normals[faces].reshape(-1, 3)
             except IndexError:
                 pass
+        finally:
+            _close_file(filename, f)
 
 
 class OffMeshReader(MeshReader):
     """Read OFF mesh files."""
     def read(self, filename):
-        with open(filename, "r") as f:
+        try:
+            f = _get_file(filename)
+
             # Read lines and clean them from comments and empty lines
             lines = f.readlines()
             lines = [l.strip() for l in lines if l[0]!="#" and l.strip() != ""]
@@ -181,6 +199,8 @@ class OffMeshReader(MeshReader):
                 self._colors = vertices[:, 4:][vertex_indices]
             elif faces.shape[1] > 4:
                 self._colors = np.repeat(faces[:, 4:], 3, axis=0)
+        finally:
+            _close_file(filename, f)
 
 
 class StlMeshReader(MeshReader):
@@ -188,11 +208,15 @@ class StlMeshReader(MeshReader):
     def read(self, filename):
         # Decide if it is an ASCII STL or not
         ascii_stl = True
-        with open(filename, "rb") as f:
-            ascii_stl = f.read(6) == b"solid "
+        try:
+            f = _get_file(filename, "rb")
+            try:
+                past_header = str(f.read(100), encoding="ascii")
+            except UnicodeDecodeError:
+                ascii_stl = False
+            f.seek(0)
 
-        if ascii_stl:
-            with open(filename, "r") as f:
+            if ascii_stl:
                 vertices = []
                 normals = []
                 START_SOLID = 1
@@ -204,6 +228,7 @@ class StlMeshReader(MeshReader):
                 normal = None
                 state = START_SOLID
                 for line in f:
+                    line = str(line, encoding="ascii")
                     fields = line.strip().split()
                     if state == START_SOLID:
                         if fields[0] != "solid":
@@ -234,8 +259,7 @@ class StlMeshReader(MeshReader):
                             state = START_FACE
                 self._vertices = np.array(vertices)
                 self._normals = np.array(normals)
-        else:
-            with open(filename, "rb") as f:
+            else:
                 header = f.read(80)
                 assert len(header) == 80
                 triangles = np.frombuffer(f.read(4), "<i4", 1)[0]
@@ -247,3 +271,5 @@ class StlMeshReader(MeshReader):
                 mesh = np.frombuffer(f.read(), dtype, triangles)
                 self._vertices = mesh["vertices"].reshape(-1, 3)
                 self._normals = np.repeat(mesh["normal"], 3, 0).reshape(-1, 3)
+        finally:
+            _close_file(filename, f)

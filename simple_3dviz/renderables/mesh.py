@@ -8,6 +8,20 @@ from pyrr import Matrix44, matrix44
 
 
 class Mesh(Renderable):
+    """A mesh is a collection of triangles with normals and colors.
+
+    Arguments
+    ---------
+        vertices: array-like, the vertices of the triangles. Each triangle
+                  should be given on its own even if vertices are shared.
+        normals: array-like, per vertex normal vectors
+        colors: array-like, per vertex color as (r, g, b) floats or
+                (r, g, b, a) floats. If one color is given then it is assumed
+                to be for all vertices.
+        offset: A translation vector for all the vertices. It can be changed
+                after construction to animate the object together with the
+                `model_matrix` property.
+    """
     def __init__(self, vertices, normals, colors, offset=[0, 0, 0.]):
         self._vertices = np.asarray(vertices)
         self._normals = np.asarray(normals)
@@ -99,6 +113,9 @@ class Mesh(Renderable):
 
     @property
     def bbox(self):
+        """The axis aligned bounding box of all the vertices as two
+        3-dimensional arrays containing the minimum and maximum for each
+        axis."""
         return [
             self._vertices.min(axis=0),
             self._vertices.max(axis=0)
@@ -106,6 +123,8 @@ class Mesh(Renderable):
 
     @property
     def model_matrix(self):
+        """An affine transformation matrix (4x4) applied to the mesh before
+        rendering. Can be changed to animate the mesh."""
         return self._model_matrix
 
     @model_matrix.setter
@@ -115,23 +134,32 @@ class Mesh(Renderable):
             self._prog["local_model"].write(self._model_matrix.tobytes())
 
     def rotate_x(self, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the x axis."""
         m = Matrix44.from_x_rotation(angle)
         self.model_matrix = m.dot(self.model_matrix)
 
     def rotate_y(self, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the y axis."""
         m = Matrix44.from_y_rotation(angle)
         self.model_matrix = m.dot(self.model_matrix)
 
     def rotate_z(self, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the z axis."""
         m = Matrix44.from_z_rotation(angle)
         self.model_matrix = m.dot(self.model_matrix)
 
     def rotate_axis(self, axis, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the passed in axis."""
         m = matrix44.create_from_axis_rotation(axis, angle)
         self.model_matrix = m.dot(self.model_matrix)
 
     @property
     def offset(self):
+        """A translation vector for the mesh vertices."""
         return self._offset
 
     @offset.setter
@@ -141,7 +169,11 @@ class Mesh(Renderable):
             self._prog["offset"].write(self._offset.tobytes())
 
     def sort_triangles(self, point):
-        """Sort the triangles wrt point from further to closest."""
+        """Sort the triangles such that the first is furthest from `point` and
+        the last is the closest to `point`.
+
+        It is used so that transparency works properly in OpenGL.
+        """
         vertices = self._vertices.reshape(-1, 3, 3)
         normals = self._normals.reshape(-1, 9)
         colors = self._colors.reshape(-1, 12)
@@ -154,18 +186,29 @@ class Mesh(Renderable):
         self._vertices = vertices[idxs].reshape(-1, 3)
         self._normals = normals[idxs].reshape(-1, 3)
         self._colors = colors[idxs].reshape(-1, 4)
-        self._vbo.write(np.hstack([
-            self._vertices, self._normals, self._colors
-        ]).astype(np.float32).tobytes())
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._vertices, self._normals, self._colors
+            ]).astype(np.float32).tobytes())
 
     def scale(self, s):
+        """Multiply all the vertices with a number s."""
         self._vertices *= s
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._vertices, self._normals, self._colors
+            ]).astype(np.float32).tobytes())
 
     def to_unit_cube(self):
+        """Transform the mesh such that it fits in the 0 centered unit cube."""
         bbox = self.bbox
         dims = bbox[1] - bbox[0]
-        self._vertices += dims/2 - bbox[0]
+        self._vertices -= dims/2 + bbox[0]
         self._vertices /= dims.max()
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._vertices, self._normals, self._colors
+            ]).astype(np.float32).tobytes())
 
     @staticmethod
     def _triangle_normals(triangles):
@@ -175,9 +218,19 @@ class Mesh(Renderable):
         return np.cross(ba, bc, axis=-1)
 
     @classmethod
-    def from_file(cls, filepath, color=(0.3, 0.3, 0.3)):
+    def from_file(cls, filepath, color=(0.3, 0.3, 0.3), ext=None):
+        """Read the mesh from a file.
+
+        Arguments
+        ---------
+            filepath: Path to file or file object containing the mesh
+            color: A default color to load if the information is not provided
+                   in the file
+            ext: The file extension (including the dot) if `filepath` is an
+                 object
+        """
         # Read the mesh
-        mesh = read_mesh_file(filepath)
+        mesh = read_mesh_file(filepath, ext=ext)
 
         # Extract the triangles
         vertices = mesh.vertices
