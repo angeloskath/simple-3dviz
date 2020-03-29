@@ -6,7 +6,7 @@ from .base import Renderable
 
 
 class Lines(Renderable):
-    def __init__(self, points, colors, width=1):
+    def __init__(self, points, colors=(0.3, 0.3, 0.3), width=1):
         self._points = np.asarray(points)
         self._colors = np.asarray(colors)
         self._width = width
@@ -109,3 +109,49 @@ class Lines(Renderable):
             if k in ["mvp", "vm"]:
                 self._prog[k].write(v.tobytes())
         self._prog["width"].value = self._width
+
+    @classmethod
+    def from_voxel_grid(cls, voxels, colors, width=0.001,
+                        bbox=[[-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]]):
+        """Create a voxel grid wire frame.
+
+        Arguments
+        ---------
+            voxels: Array of 3D values, with truthy values indicating which
+                    voxels to fill
+        """
+        # Make sure voxels, colors and bbox are arrays
+        voxels, colors, bbox = list(map(np.asarray, [voxels, colors, bbox]))
+
+        # Ensure that the voxel grid is indeed a 3D grid
+        assert len(voxels.shape) == 3
+        M, N, K = voxels.shape
+
+        # Compute the size of each side
+        sizes = 0.5 * (bbox[1] - bbox[0]) / [M, N, K]
+
+        # Convert the indices to center coordinates
+        x, y, z = np.indices((M, N, K)).astype(np.float32)
+        x = x / M * (bbox[1][0] - bbox[0][0]) + bbox[0][0]
+        y = y / N * (bbox[1][1] - bbox[0][1]) + bbox[0][1]
+        z = z / K * (bbox[1][2] - bbox[0][2]) + bbox[0][2]
+        centers = np.vstack([x[voxels], y[voxels], z[voxels]]).T
+
+        # Create an array containing the cube edges
+        edges = np.array([[-1, -1, -1], [ 1, -1, -1],
+                          [ 1, -1, -1], [ 1,  1, -1],
+                          [ 1,  1, -1], [-1,  1, -1],
+                          [-1,  1, -1], [-1, -1, -1],
+                          [-1, -1,  1], [ 1, -1,  1],
+                          [ 1, -1,  1], [ 1,  1,  1],
+                          [ 1,  1,  1], [-1,  1,  1],
+                          [-1,  1,  1], [-1, -1,  1],
+                          [-1, -1, -1], [-1, -1,  1],
+                          [-1,  1, -1], [-1,  1,  1],
+                          [ 1, -1, -1], [ 1, -1,  1],
+                          [ 1,  1, -1], [ 1,  1,  1]]) * sizes
+
+        # Finally create the edges of each cube
+        points = centers[:, np.newaxis] + edges[np.newaxis]
+
+        return cls(points.reshape(-1, 3), colors, width)
