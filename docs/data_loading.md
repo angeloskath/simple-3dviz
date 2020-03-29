@@ -144,7 +144,7 @@ from a numpy array using the `Spherecloud` renderable.
 >>> omega = np.linspace(-np.pi, np.pi, 100, endpoint=True)
 >>> eta, omega = np.meshgrid(eta, omega)
 >>> x, y, z = sq_surface(a1=0.4, a2=0.4, a3=0.4, e1=1.0, e2=1.0, eta=eta, omega=omega)
->>> centers = points = np.stack([x, y, z]).reshape(3, -1).T
+>>> centers = np.stack([x, y, z]).reshape(3, -1).T
 >>> s = Spherecloud(centers[::30])
 
 # It is possible to modify the color and the size of the rendered point cloud
