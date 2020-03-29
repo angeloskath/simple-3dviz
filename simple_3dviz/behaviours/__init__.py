@@ -1,11 +1,41 @@
+"""Behaviours decouple the changes of a scene with the management of a scene
+(creation, rendering, etc.).
+
+The behaviours allow for a simple and unified way to animate, save frames to
+disk, interact with a mouse and keyboard. This means that you can write all
+your domain logic in terms of behaviours and then render with or without a GUI
+by using `simple_3dviz.window.show` or `simple_3dviz.utils.render`
+respectively.
+"""
+
 class Behaviour(object):
+    """Behaviour defines the interface that is implemented by all behaviours
+    and provides simple helper classes to encapsulate the current scene
+    configuration.
+
+    In particular the interface is a single method
+    `simple_3dviz.behaviours.Behaviour.behave` that accepts a single argument
+    of type `simple_3dviz.behaviours.Behaviour.Params`. For details see the
+    corresponding comments.
+    """
     class Mouse(object):
-        """Hold information about the current mouse events.
+        """Hold information about the mouse events.
 
-        TODO: This class should be augmented with more capabilities in due
-              time.
+        Example behaviours that use the mouse can be found in
+        `simple_3dviz.behaviours.mouse`.
 
-        WARNING: The API most definitely will change.
+        Attributes
+        ----------
+            location: (x, y), a tuple of floats or integers containing the
+                      location of the mouse in the screen
+            left_pressed: bool, indicating whether the left button of the mouse
+                          is currently pressed (or has been pressed once)
+            middle_pressed: bool, indicating whether the middle button of the
+                            mouse is currently pressed (or has been pressed
+                            once)
+            wheel_rotation: float | int, indicate the number of position
+                            changes of the scroll wheel of the mouse, the sign
+                            indicates the direction of rotation
         """
         def __init__(self, location, left_pressed, middle_pressed, wheel_rotation):
             self.location = location
@@ -16,8 +46,16 @@ class Behaviour(object):
     class Keyboard(object):
         """Holds information about the keyboard events.
 
-        The members are two sets containing the keys that were pressed down and
-        released respectively.
+        The members are two sets containing string representations for the keys
+        that were pressed down and released respectively. Example behaviours
+        that use the keyboard can be found in
+        `simple_3dviz.behaviours.keyboard` and
+        `simple_3dviz.scripts.mesh_viewer`.
+
+        Attributes
+        ----------
+            keys_down: set[string], the keys that were pressed down
+            keys_up: set[string], the keys that were released
         """
         def __init__(self, keys_down, keys_up):
             self.keys_down = set(keys_down)
