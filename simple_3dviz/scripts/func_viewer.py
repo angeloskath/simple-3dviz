@@ -1,3 +1,5 @@
+"""Visualize two-dimensional functions. Use the `--help` argument for
+information on how to use the script."""
 
 import argparse
 

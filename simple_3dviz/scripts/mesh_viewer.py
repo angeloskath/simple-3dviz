@@ -1,3 +1,5 @@
+"""Visualize mesh files. Use the `--help` argument for information on how to
+use the script."""
 
 import argparse
 from os import path
