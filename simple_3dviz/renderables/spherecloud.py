@@ -5,7 +5,7 @@ from .base import Renderable
 
 
 class Spherecloud(Renderable):
-    def __init__(self, centers, colors, sizes):
+    def __init__(self, centers, colors=(0.3, 0.3, 0.3), sizes=(0.02)):
         self._centers = np.asarray(centers)
         self._colors = np.asarray(colors)
         self._sizes = np.asarray(sizes)

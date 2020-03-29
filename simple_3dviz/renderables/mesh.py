@@ -377,6 +377,8 @@ class Mesh(Renderable):
         # Clean and standardize the sizes
         if sizes is None:
             sizes = (bbox[1]-bbox[0]) * 0.48 / [M, N, K]
+        else:
+            sizes = np.asarray(sizes)
 
         # Convert the indices to center coordinates
         x, y, z = np.indices((M, N, K)).astype(np.float32)
