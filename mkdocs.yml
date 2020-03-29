@@ -6,7 +6,7 @@ site_dir: output
 pages:
 - Home: 'index.md'
 - User Guide:
-  - Loading and Configuring Models: 'data_loading.md'
+  - Loading and Manipulating Data: 'data_loading.md'
   - Creating Scenes: 'scene.md'
   - Cameras Manipulation: 'camera.md'
   - Lights Manipulation: 'lights.md'
