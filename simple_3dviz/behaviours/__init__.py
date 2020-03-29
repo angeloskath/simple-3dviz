@@ -64,13 +64,25 @@ class Behaviour(object):
     class Params(object):
         """The parameters provided by the window to the behaviours.
 
+        This object facilitates interaction between behaviours the same way an
+        event object facilitates interactions between DOM event handlers in
+        languages like javascript.
+
+        The properties `stop_propagation`, `done` and `refresh` are used to
+        stop handling of behaviours for this tick, remove the current behaviour
+        from the behaviours list and cause a repaint event respectively.
+
         Attributes
         ----------
-            window: A reference to the window object
-            scene: A reference to the scene
-            frame: A callable that returns the current frame
-            mouse: A Behaviour.Mouse object providing mouse info
-            keyboard: A Behaviour.Keyboard object providing keyboard info
+            window: A simple_3dviz.window.base.BaseWindow implementation
+                    pointing to the current window object
+            scene: A simple_3dviz.scenes.Scene object pointing to the current
+                   scene
+            frame: A Callable that returns the current frame
+            mouse: A simple_3dviz.behaviours.Behaviour.Mouse object providing
+                   mouse info
+            keyboard: A simple_3dviz.behaviours.Behaviour.Keyboard object
+                      providing keyboard info
             stop_propagation: bool, when set no more behaviours will be run
             done: bool, when set remove this behaviour from the list
             refresh: bool, when set make sure to redraw the window
@@ -88,6 +100,8 @@ class Behaviour(object):
 
         @property
         def stop_propagation(self):
+            """Set to True to stop the processing of more behaviours in the
+            current tick."""
             return self._stop
 
         @stop_propagation.setter
@@ -96,6 +110,8 @@ class Behaviour(object):
 
         @property
         def done(self):
+            """Set to True to remove this behaviour from the behaviours
+            list."""
             return self._done
 
         @done.setter
@@ -104,6 +120,7 @@ class Behaviour(object):
 
         @property
         def refresh(self):
+            """Set to True to force a repaint event."""
             return self._refresh
 
         @refresh.setter
@@ -111,13 +128,27 @@ class Behaviour(object):
             self._refresh = self._refresh or (r == True)
 
     def behave(self, params):
+        """Implements the logic of the behaviour.
+
+        Subclasses of behaviour must override this method to implement their
+        custom logic.
+
+        Arguments
+        ---------
+            params: Instance of simple_3dviz.behaviours.Behaviour.Params
+        """
         raise NotImplementedError()
 
 
 class SceneInit(Behaviour):
     """Initialize a scene.
-    
+
     Run an init function once and update the render.
+
+    Arguments
+    ---------
+        scene_init: callable, a function that takes a Scene as an argument to
+                    initialize it, add objects, set the camera, etc.
     """
     def __init__(self, scene_init):
         self._init_func = scene_init
