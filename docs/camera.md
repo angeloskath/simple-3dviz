@@ -18,14 +18,39 @@ that indicates which direction is "up" (`up_vector`).
 >>> m.to_unit_cube()
 
 # Render the image with the default camera parameters
->>> show(m, camera_position=(-2, -2, -2), camera_target=(0, 0, 0), size=(256,256))
-# Let's move the camera above the penguin
->>> show(m, camera_position=(-1, -1, 1), camera_target=(0, 0, 0), size=(256,256))
+>>> show(
+...    m,
+...    camera_position=(-2, -2, -2),
+...    camera_target=(0, 0, 0),
+...    size=(256,256)
+... )
+
+# Let's move the camera closer and above the penguin
+>>> show(
+...    m,
+...    camera_position=(-1, -1, -1),
+...    camera_target=(0, 0, 0),
+...    size=(256,256)
+... )
+
 # Let's move the camera a bit closer to the benguin
->>> show(m, camera_position=(-0.5, -0.5, 1), camera_target=(0, 0, 0), size=(256,256))
+>>> show(
+...    m,
+...    camera_position=(-0.5, -0.5, -1),
+...    camera_target=(0, 0, 0),
+...    size=(256,256)
+... )
+
 # Let's now move both the up_vector and the camera_target
->>> show(m, camera_position=(0.10, -2, 0.6), camera_target=(0.0, 0.5, 0.0), up_vector=(0.0, 0.22, 0.73), size=(256,256)
+>>> show(
+...    m,
+...    camera_position=(-0.1, -2.0, 0.6),
+...    camera_target=(0.0, 0.5, 0.0),
+...    up_vector=(0.0, 0.22, 0.73),
+...    size=(256,256)
+... )
 ```
+
 <div style="text-align: center;">
     <img src="../img/cameras_default.png" alt="Penguin 1" />
     <img src="../img/cameras_1.png" alt="Penguin 2" />
@@ -33,5 +58,6 @@ that indicates which direction is "up" (`up_vector`).
     <img src="../img/cameras_3.png" alt="Penguin 4" />
 </div>
 
-Note that by pressing `R` when using the scene viewer via the `show` function,
-simple-3dviz reports the camera configuration at the current timestamp.
+Note that by pressing the `R` key, when using the scene viewer via the `show`
+function, simple-3dviz reports the camera configuration at the current
+timestamp.

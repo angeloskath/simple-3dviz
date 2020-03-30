@@ -1,7 +1,7 @@
 # Overview
 
 Being able to load and manipulate data is the first step towards rendering a
-scene. simple-3dviz implements various `renderables` such as meshes, point clouds,
+scene. simple-3dviz implements various `Renderables` such as meshes, point clouds,
 lines e.t.c that can be used for configuring different types of input.
 
 ## Creating Meshes
