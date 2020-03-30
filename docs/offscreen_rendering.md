@@ -13,7 +13,7 @@ either with the two helper functions `show()` and `render()` or with the
   that `render()` implements the same functionality as `show()`.
 - `Scene.render()`: Renders the content of the scene without launching any GUI.
 
-## show()
+## show() and render()
 
 Calling the `show()` function, launches a window that displays a list of
 `Renderables` and animates the scene based on a list of `Behaviours`. It is
@@ -66,9 +66,6 @@ arguments, checkout out the API Docs.
     <img src="../img/offscreen_show_teapot.gif" alt="Teapot" width=40% height=50%/>
     <img src="../img/offscreen_show_teapot_3.gif" alt="Teapot with Spherecloud" width=40% height=50%/>
 </div>
-
-
-## render()
 
 The `render()` function implements the same functionality as `show()` without
 the need for any GUI. Additionally, you need to specify the number of frames to

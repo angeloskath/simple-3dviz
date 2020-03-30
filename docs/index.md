@@ -213,7 +213,7 @@ spheres_sizes = np.ones(centers.shape[0])*0.02
 
 ## Keybord and Mouse Controls for the Scene Viewer
 
-When using the scene viewer via the `show` fuction, it is possible to
+When using the scene viewer via the `show()` fuction, it is possible to
 perform various actions either using the mouse of the keybord.
 
 - Rotate: Press the left button click
