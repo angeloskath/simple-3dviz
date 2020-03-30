@@ -2,7 +2,9 @@
 
 simple-3dviz is a lightweight and easy-to-use library that provides an easy
 interface for visualizing 3D objects with hundreds of thousands of vertices
-efficiently without the overhead of writing hundreds of lines of code.
+efficiently without the overhead of writing hundreds of lines of code. It can
+be used for visualizing various renderables such as meshes, point clouds, voxel
+grids, a set of geometric primitives etc.
 
 <div style="text-align: center;">
     <img src="img/baby_yoda_rotating.gif" alt="Baby Green Yoda" />

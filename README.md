@@ -4,7 +4,8 @@ simple-3dviz
 simple-3dviz provides a set of simple and reusable tools for visualizing 3D
 data using Python and OpenGL. The goal of this library is to provide an easy
 way to visualize 3D objects with hundreds of thousands of vertices efficiently
-just with few lines of code.
+just with few lines of code. It can be used for visualizing various renderables
+such as meshes, point clouds, voxel grids, a set of geometric primitives etc.
 
 ![Baby Green Yoda](models/baby_yoda_rotating.gif)
 ![Baby Blue Yoda](models/baby_yoda_back_and_forth.gif)
