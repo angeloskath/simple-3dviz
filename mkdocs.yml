@@ -10,7 +10,7 @@ pages:
   - Cameras: 'camera.md'
   - Lights: 'lights.md'
   - Scene: 'scene.md'
-  - Off-screen Rendering: 'offscreen_rendering.md'
+  - Offscreen Rendering: 'offscreen_rendering.md'
   - Animations: 'animations.md'
   - Examples: 'examples.md'
 - Develop:
