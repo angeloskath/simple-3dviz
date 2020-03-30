@@ -7,9 +7,9 @@ pages:
 - Home: 'index.md'
 - User Guide:
   - Loading and Manipulating Data: 'data_loading.md'
-  - Creating Scenes: 'scene.md'
-  - Cameras Manipulation: 'camera.md'
-  - Lights Manipulation: 'lights.md'
+  - Cameras: 'camera.md'
+  - Lights: 'lights.md'
+  - Scene: 'scene.md'
   - Off-screen Rendering: 'offscreen_rendering.md'
   - Animations: 'animations.md'
   - Examples: 'examples.md'
