@@ -75,9 +75,9 @@ objects that can be added should implement the `Renderable` interface.
 ```
 
 <div style="text-align: center;">
-    <img src="../img/scenes_renderable_1.png" alt="Renderable 1" width=32% height=50%/>
-    <img src="../img/scenes_renderable_2.png" alt="Renderable 2" width=33% height=50%/>
-    <img src="../img/scenes_renderable_3.png" alt="Renderable 3" width=33% height=50%/>
+    <img src="../img/scenes_renderable_1.png" alt="Renderable 1" width=32.5% height=50%/>
+    <img src="../img/scenes_renderable_2.png" alt="Renderable 2" width=32.5% height=50%/>
+    <img src="../img/scenes_renderable_3.png" alt="Renderable 3" width=32.5% height=50%/>
 </div>
 
 ## Removing Renderables
@@ -91,5 +91,5 @@ Finally, removing objects can be easily done with the `remove()` function:
 ```
 
 <div style="text-align: center;">
-    <img src="../img/scenes_renderable_4.png" alt="Renderable 4" width=32% height=50%/>
+    <img src="../img/scenes_renderable_4.png" alt="Renderable 4" width=32.5% height=50%/>
 </div>
