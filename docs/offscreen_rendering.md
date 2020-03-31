@@ -1,6 +1,6 @@
 # Offscreen Rendering
 
-Simple-3dviz, due to ModernGL providing the OpenGL, does not require any
+simple-3dviz, due to ModernGL providing the OpenGL, does not require any
 graphical user interface for rendering the content of a scene. In particular,
 it provides three different ways to render the content of the framebuffer,
 either with the two helper functions `show()` and `render()` or with the

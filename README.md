@@ -217,17 +217,17 @@ spheres_colors = np.array([[1, 1, 0, 1],
 spheres_sizes = np.ones(centers.shape[0])*0.02
 ```
 
-## Keybord and Mouse Controls for the Scene Viewer
+## Keyboard and Mouse Controls for the Scene Viewer
 
-When using the scene viewer via the `show` fuction, it is possible to
-perform various actions either using the mouse of the keybord.
+When using the scene viewer via the `show()` function, it is possible to
+perform various actions either using the mouse of the keyboard.
 
 - Rotate: Press the left button click
 - Pan: Press the middle button click
 - Zoom in/out: Scroll the mouse wheel
 
 The available keyboard commands are:
-- `R`: Reports the camera position, its vieweing direction and the the 3d
+- `R`: Reports the camera position, its viewing direction and the 3d
   direction that indicates which direction is "up" at the current timestamp.
 - `T`: Make sure that the triangles will be sorted so that the transparency
   works as well.
@@ -245,3 +245,14 @@ the library should be used and extended.
 Our code is released under the [MIT
 license](https://github.com/angeloskath/LICENSE), which practically allows
 anyone to do anything with it.
+
+## Citation
+
+If you found simple-3dviz useful in your research please consider citing:
+
+@misc{Katharopoulos2020simple3dviz,
+     title = {simple-3dviz},
+     author = {Katharopoulos Angelos and Paschalidou, Despoina},
+     howpublished = {\url{https://simple-3dviz.com}},
+     year = {2020}
+}

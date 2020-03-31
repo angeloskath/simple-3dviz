@@ -87,18 +87,24 @@ trajectory that can be a circle, a bezier curve or a line.
 
 ## Keyboard and mouse interactions
 
-When using the scene viewer via the `show()` fuction, it is possible to
-perform various actions either using the mouse of the keybord.
+simple-3dviz supports various keyboard and mouse interactions both when using
+the scene viewer and when using the offscreen rendering. Mouse interactions are
+mainly focused on exploring the scene. Below is a list with the available
+mouse actions:
 
-- Rotate: Press the left button click
-- Pan: Press the middle button click
-- Zoom in/out: Scroll the mouse wheel
+- `MouseRotate`: Rotate the camera using the mouse, when the left button click
+  is pressed.
+- `MouseZoom`: Zoum in/out with the mouse scroll wheel.
+- `MousePan`: Move a point in the scene using the mouse, when the middle button
+  click is pressed.
 
-The available keyboard commands are:
+Keyboard interactions allows you to perform various actions by pressing a key.
+While we set a default value for the key, it is possible to change it to any
+key you prefer:
 
 - `SnapshotOnKey`: Allows you to take a snapshot of the scene when a key is
   pressed.
-- `CameraReport`: Reports the camera position, its vieweing direction and the the 3d
+- `CameraReport`: Reports the camera position, its viewing direction and the 3d
   direction that indicates which direction is "up" at the current timestamp.
 - `SortTriangles`: Make sure that the triangles will be sorted so that the transparency
   works as well.

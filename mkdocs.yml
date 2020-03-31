@@ -12,7 +12,7 @@ pages:
   - Scene: 'scene.md'
   - Offscreen Rendering: 'offscreen_rendering.md'
   - Animations: 'animations.md'
-  - Examples: 'examples.md'
+  - Examples and Scripts: 'examples.md'
 - Develop:
   - Code walkthrough: 'code-walkthrough.md'
   - API Docs: '/api-docs/'
