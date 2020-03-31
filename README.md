@@ -27,11 +27,11 @@ You can install `simple-3dviz` directly from `pip`.
 pip install simple-3dviz
 ```
 If you want to extend our code clone the repository and install it in
-development mode. In addition to the main library, there are also two useful
+development mode. In addition to the main library, we provide also two useful
 console applications that can be used for visualizing meshes
-([mesh_viewer](https://github.com/angeloskath/simple-3dviz/scripts/mesh_viewer.py))
-and functions given from the command line
-([func_viewer](https://github.com/angeloskath/simple-3dviz/scripts/func_viewer.py)).
+([mesh_viewer](https://github.com/angeloskath/simple-3dviz/blob/master/simple_3dviz/scripts/mesh_viewer.py))
+and 2D functions
+([func_viewer](https://github.com/angeloskath/simple-3dviz/blob/master/simple_3dviz/scripts/func_viewer.py)).
 
 The dependencies of `simple-3dviz` are listed below:
 - [numpy](http://www.numpy.org/)
@@ -44,8 +44,8 @@ The dependencies of `simple-3dviz` are listed below:
 ## Quick Start
 
 You can find various examples of how to use our library in the provided
-[scripts](https://github.com/angeloskath/simple-3dviz/simple_3dviz/scripts) and
-[examples]([scripts](https://github.com/angeloskath/simple_3dviz/examples).
+[scripts](https://github.com/angeloskath/simple-3dviz/tree/master/simple_3dviz/scripts) and
+[examples](https://github.com/angeloskath/simple-3dviz/tree/master/examples).
 Below we showcase some basic functionalities implemented in `simple-3dviz`.
 
 ```python
@@ -237,8 +237,8 @@ The available keyboard commands are:
 The module has a dedicated [documentation site](http://simple-3dviz.com) but
 you can also read the [source
 code](https://github.com/angeloskath/simple-3dviz) and the
-[examples](https://github.com/angeloskath/simple-3dviz) to get an idea of how
-the library should be used and extended.
+[examples](https://github.com/angeloskath/simple-3dviz/tree/master/examples).
+to get an idea of how the library should be used and extended.
 
 ## License
 

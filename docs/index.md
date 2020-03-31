@@ -31,6 +31,11 @@ The easiest way to install it is from PyPI with:
 ```bash
 pip install --user simple-3dviz # --user is obviously optional
 ```
+In addition to the main library, we also provide two useful
+console applications that can be used for visualizing meshes
+([mesh_viewer](https://github.com/angeloskath/simple-3dviz/blob/master/simple_3dviz/scripts/mesh_viewer.py))
+and 2D functions
+([func_viewer](https://github.com/angeloskath/simple-3dviz/blob/master/simple_3dviz/scripts/func_viewer.py)).
 
 ## Quick Start
 
