@@ -7,12 +7,12 @@ way to visualize 3D objects with hundreds of thousands of vertices efficiently
 just with few lines of code. It can be used for visualizing various renderables
 such as meshes, point clouds, voxel grids, a set of geometric primitives etc.
 
-![Baby Green Yoda](http://simple-3dviz.com/img/baby_yoda_rotating.gif)
-![Baby Blue Yoda](http://simple-3dviz.com/img/baby_yoda_back_and_forth.gif)
-![Colourful Baby Yodas](http://simple-3dviz.com/img/yodas_bezier_curve.gif)
-![Voxel Grid](http://simple-3dviz.com/img/rotating_voxels.gif)
-![Voxel Grid and Spheres](http://simple-3dviz.com/img/rotating_voxels_spheres.gif)
-![Superquadrics and Lines](http://simple-3dviz.com/img/sqs.gif)
+![Baby Green Yoda](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/baby_yoda_rotating.gif)
+![Baby Blue Yoda](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/baby_yoda_back_and_forth.gif)
+![Colourful Baby Yodas](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/yodas_bezier_curve.gif)
+![Voxel Grid](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/rotating_voxels.gif)
+![Voxel Grid and Spheres](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/rotating_voxels_spheres.gif)
+![Superquadrics](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/sqs.gif)
 
 Key features include:
 - Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html), [binary/ASCII STL](https://en.wikipedia.org/wiki/STL_(file_format)) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
@@ -250,9 +250,11 @@ anyone to do anything with it.
 
 If you found simple-3dviz useful in your research please consider citing:
 
+```
 @misc{Katharopoulos2020simple3dviz,
      title = {simple-3dviz},
      author = {Katharopoulos Angelos and Paschalidou, Despoina},
      howpublished = {\url{https://simple-3dviz.com}},
      year = {2020}
 }
+```

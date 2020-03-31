@@ -243,7 +243,7 @@ This software is distributed with the **MIT** license which practically allows y
 
 If you found simple-3dviz useful in your research please consider citing:
 
-```bash
+```
 @misc{Katharopoulos2020simple3dviz,
      title = {simple-3dviz},
      author = {Katharopoulos Angelos and Paschalidou, Despoina},

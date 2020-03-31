@@ -3,4 +3,7 @@
 
 *.stl
 *.obj
+
 output
+build
+dist
