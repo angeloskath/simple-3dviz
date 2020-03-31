@@ -1,17 +1,27 @@
 
 import numpy as np
 
+from ..io import read_mesh_file
 from .base import Renderable
-
-try:
-    import trimesh
-except ImportError:
-    pass
 
 from pyrr import Matrix44, matrix44
 
 
 class Mesh(Renderable):
+    """A mesh is a collection of triangles with normals and colors.
+
+    Arguments
+    ---------
+        vertices: array-like, the vertices of the triangles. Each triangle
+                  should be given on its own even if vertices are shared.
+        normals: array-like, per vertex normal vectors
+        colors: array-like, per vertex color as (r, g, b) floats or
+                (r, g, b, a) floats. If one color is given then it is assumed
+                to be for all vertices.
+        offset: A translation vector for all the vertices. It can be changed
+                after construction to animate the object together with the
+                `model_matrix` property.
+    """
     def __init__(self, vertices, normals, colors, offset=[0, 0, 0.]):
         self._vertices = np.asarray(vertices)
         self._normals = np.asarray(normals)
@@ -102,7 +112,19 @@ class Mesh(Renderable):
                 self._prog[k].write(v.tobytes())
 
     @property
+    def bbox(self):
+        """The axis aligned bounding box of all the vertices as two
+        3-dimensional arrays containing the minimum and maximum for each
+        axis."""
+        return [
+            self._vertices.min(axis=0),
+            self._vertices.max(axis=0)
+        ]
+
+    @property
     def model_matrix(self):
+        """An affine transformation matrix (4x4) applied to the mesh before
+        rendering. Can be changed to animate the mesh."""
         return self._model_matrix
 
     @model_matrix.setter
@@ -112,23 +134,32 @@ class Mesh(Renderable):
             self._prog["local_model"].write(self._model_matrix.tobytes())
 
     def rotate_x(self, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the x axis."""
         m = Matrix44.from_x_rotation(angle)
         self.model_matrix = m.dot(self.model_matrix)
 
     def rotate_y(self, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the y axis."""
         m = Matrix44.from_y_rotation(angle)
         self.model_matrix = m.dot(self.model_matrix)
 
     def rotate_z(self, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the z axis."""
         m = Matrix44.from_z_rotation(angle)
         self.model_matrix = m.dot(self.model_matrix)
 
     def rotate_axis(self, axis, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the passed in axis."""
         m = matrix44.create_from_axis_rotation(axis, angle)
         self.model_matrix = m.dot(self.model_matrix)
 
     @property
     def offset(self):
+        """A translation vector for the mesh vertices."""
         return self._offset
 
     @offset.setter
@@ -138,7 +169,11 @@ class Mesh(Renderable):
             self._prog["offset"].write(self._offset.tobytes())
 
     def sort_triangles(self, point):
-        """Sort the triangles wrt point from further to closest."""
+        """Sort the triangles such that the first is furthest from `point` and
+        the last is the closest to `point`.
+
+        It is used so that transparency works properly in OpenGL.
+        """
         vertices = self._vertices.reshape(-1, 3, 3)
         normals = self._normals.reshape(-1, 9)
         colors = self._colors.reshape(-1, 12)
@@ -151,9 +186,29 @@ class Mesh(Renderable):
         self._vertices = vertices[idxs].reshape(-1, 3)
         self._normals = normals[idxs].reshape(-1, 3)
         self._colors = colors[idxs].reshape(-1, 4)
-        self._vbo.write(np.hstack([
-            self._vertices, self._normals, self._colors
-        ]).astype(np.float32).tobytes())
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._vertices, self._normals, self._colors
+            ]).astype(np.float32).tobytes())
+
+    def scale(self, s):
+        """Multiply all the vertices with a number s."""
+        self._vertices *= s
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._vertices, self._normals, self._colors
+            ]).astype(np.float32).tobytes())
+
+    def to_unit_cube(self):
+        """Transform the mesh such that it fits in the 0 centered unit cube."""
+        bbox = self.bbox
+        dims = bbox[1] - bbox[0]
+        self._vertices -= dims/2 + bbox[0]
+        self._vertices /= dims.max()
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._vertices, self._normals, self._colors
+            ]).astype(np.float32).tobytes())
 
     @staticmethod
     def _triangle_normals(triangles):
@@ -163,18 +218,34 @@ class Mesh(Renderable):
         return np.cross(ba, bc, axis=-1)
 
     @classmethod
-    def from_file(cls, filepath, color=None, use_vertex_normals=False):
-        mesh = trimesh.load(filepath)
-        vertices = mesh.vertices[mesh.faces.ravel()]
-        if use_vertex_normals:
-            normals = mesh.vertex_normals[mesh.faces.ravel()]
-        else:
-            normals = np.repeat(mesh.face_normals, 3, axis=0)
-        if color is not None:
-            colors = np.ones_like(vertices) * color
-        elif mesh.visual is not None:
-            colors = mesh.visual.vertex_colors[mesh.faces.ravel()]
-            colors = colors[:, :4].astype(np.float32)/255
+    def from_file(cls, filepath, color=(0.3, 0.3, 0.3), ext=None):
+        """Read the mesh from a file.
+
+        Arguments
+        ---------
+            filepath: Path to file or file object containing the mesh
+            color: A default color to load if the information is not provided
+                   in the file
+            ext: The file extension (including the dot) if `filepath` is an
+                 object
+        """
+        # Read the mesh
+        mesh = read_mesh_file(filepath, ext=ext)
+
+        # Extract the triangles
+        vertices = mesh.vertices
+
+        # Set a normal per triangle vertex
+        try:
+            normals = mesh.normals
+        except NotImplementedError:
+            normals = np.repeat(Mesh._triangle_normals(vertices), 3, axis=0)
+
+        # Set a color per triangle vertex
+        try:
+            colors = mesh.colors
+        except NotImplementedError:
+            colors = np.ones((len(vertices), 1)) * color
 
         return cls(vertices, normals, colors)
 
@@ -214,8 +285,8 @@ class Mesh(Renderable):
 
         vertices = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T[faces]
         colors = (
-            colormap(vertices[:, -1])[:, :3]
-            if colormap else gray(vertices[:, -1])
+            colormap(Z.ravel()[faces])
+            if colormap else gray(z.ravel()[faces])
         )
         normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
 
@@ -324,10 +395,11 @@ class Mesh(Renderable):
         ))
 
         assert len(centers.shape) == 2 and centers.shape[1] == 3
-        assert len(sizes.shape) == 2 and sizes.shape[1] == 3
+        if len(sizes.shape) == 1:
+            sizes = sizes[np.newaxis].repeat(len(centers), axis=0)
         vertices = centers[:, np.newaxis]+sizes[:, np.newaxis]*box[np.newaxis]
         vertices = vertices.reshape(-1, 3)
-        normals = np.repeat(normals, len(centers), axis=0)
+        normals = np.vstack([normals]*len(centers))
 
         if len(colors.shape) == 1:
             if colors.size < 4:
@@ -337,6 +409,50 @@ class Mesh(Renderable):
             colors = np.repeat(colors, len(box), axis=0)
 
         return cls(vertices, normals, colors)
+
+    @classmethod
+    def from_voxel_grid(cls, voxels, sizes=None, colors=(0.3, 0.3, 0.3),
+                        bbox=[[-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]]):
+        """ Create a voxel grid
+
+        Arguments
+        ---------
+            voxels: Array of 3D values, with truthy values indicating which
+                    voxels to fill
+        """
+        # Make sure voxels, colors and bbox are arrays
+        voxels, colors, bbox = list(map(np.asarray, [voxels, colors, bbox]))
+
+        # Ensure that the voxel grid is indeed a 3D grid
+        assert len(voxels.shape) == 3
+        M, N, K = voxels.shape
+
+        # Clean and standardize the sizes
+        if sizes is None:
+            sizes = (bbox[1]-bbox[0]) * 0.48 / [M, N, K]
+        else:
+            sizes = np.asarray(sizes)
+
+        # Convert the indices to center coordinates
+        x, y, z = np.indices((M, N, K)).astype(np.float32)
+        x = x / M * (bbox[1][0] - bbox[0][0]) + bbox[0][0]
+        y = y / N * (bbox[1][1] - bbox[0][1]) + bbox[0][1]
+        z = z / K * (bbox[1][2] - bbox[0][2]) + bbox[0][2]
+        centers = np.vstack([x[voxels], y[voxels], z[voxels]]).T
+
+        # Convert the sizes to per box sizes
+        if len(sizes.shape) == 1:
+            sizes = np.array([sizes for _ in range(len(centers))])
+        elif len(sizes.shape) == 4:
+            sizes = sizes[voxels]
+
+        # Convert the colors to per box colors
+        if len(colors.shape) == 1:
+            colors = np.array([colors for _ in range(len(centers))])
+        elif len(colors.shape) == 4:
+            colors = colors[voxels]
+
+        return cls.from_boxes(centers=centers, sizes=sizes, colors=colors)
 
     @classmethod
     def from_superquadrics(cls, alpha, epsilon, translation, rotation, colors,

@@ -1,2 +1,6 @@
 *.egg-info
 *.pyc
+
+*.stl
+*.obj
+output

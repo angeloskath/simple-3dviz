@@ -3,6 +3,15 @@ from . import Behaviour
 
 
 class SaveFrames(Behaviour):
+    """Save the rendered frames to a file.
+
+    Arguments
+    ---------
+        path: Path to the file to save the frame. Python's format() will be
+              used to add the index of the frame in the file name as follows
+              '/path/to/frame_{}.png' -> /path/to/frame_0.png .
+        every_n: int, Save every n frames instead of all frames.
+    """
     def __init__(self, path, every_n=1):
         self._path = path
         self._every_n = every_n

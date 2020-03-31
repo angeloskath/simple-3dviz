@@ -1,0 +1,19 @@
+site_name: simple-3dviz
+site_url: http://simple-3dviz.com/
+repo_url: https://github.com/angeloskath/simple-3dviz/
+theme: readthedocs
+site_dir: output
+pages:
+- Home: 'index.md'
+- User Guide:
+  - Loading and Manipulating Data: 'data_loading.md'
+  - Cameras: 'camera.md'
+  - Lights: 'lights.md'
+  - Scene: 'scene.md'
+  - Offscreen Rendering: 'offscreen_rendering.md'
+  - Animations: 'animations.md'
+  - Examples and Scripts: 'examples.md'
+- Develop:
+  - Code walkthrough: 'code-walkthrough.md'
+  - API Docs: '/api-docs/'
+  - Contribution: 'contribution.md'

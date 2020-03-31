@@ -41,13 +41,14 @@ def get_install_requirements():
     return [
         "moderngl",
         "numpy",
-        "trimesh==2.38.42",
-        "pyrr"
+        "pyrr",
+        "plyfile",
+        "Pillow"
     ]
 
 
 def setup_package():
-    with open("README.rst") as f:
+    with open("README.md") as f:
         long_description = f.read()
     meta = collect_metadata()
     setup(
@@ -55,9 +56,11 @@ def setup_package():
         version=meta["version"],
         description=meta["description"],
         long_description=long_description,
+        long_description_content_type="text/markdown",
         maintainer=meta["maintainer"],
         maintainer_email=meta["email"],
         url=meta["url"],
+        keywords=meta["keywords"],
         license=meta["license"],
         classifiers=[
             "Intended Audience :: Science/Research",
