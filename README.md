@@ -7,12 +7,12 @@ way to visualize 3D objects with hundreds of thousands of vertices efficiently
 just with few lines of code. It can be used for visualizing various renderables
 such as meshes, point clouds, voxel grids, a set of geometric primitives etc.
 
-![Baby Green Yoda](models/baby_yoda_rotating.gif)
-![Baby Blue Yoda](models/baby_yoda_back_and_forth.gif)
-![Colourful Baby Yodas](models/yodas_bezier_curve.gif)
-![Voxel Grid](models/rotating_voxels.gif)
-![Voxel Grid and Spheres](models/rotating_voxels_spheres.gif)
-![Superquadrics and Lines](models/sqs.gif)
+![Baby Green Yoda](http://simple-3dviz.com/img/baby_yoda_rotating.gif)
+![Baby Blue Yoda](http://simple-3dviz.com/img/baby_yoda_back_and_forth.gif)
+![Colourful Baby Yodas](http://simple-3dviz.com/img/yodas_bezier_curve.gif)
+![Voxel Grid](http://simple-3dviz.com/img/rotating_voxels.gif)
+![Voxel Grid and Spheres](http://simple-3dviz.com/img/rotating_voxels_spheres.gif)
+![Superquadrics and Lines](http://simple-3dviz.com/img/sqs.gif)
 
 Key features include:
 - Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html), [binary/ASCII STL](https://en.wikipedia.org/wiki/STL_(file_format)) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
