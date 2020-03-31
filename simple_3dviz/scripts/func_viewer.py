@@ -28,13 +28,29 @@ def f_tuple(n):
     return inner
 
 
-def get_function(func, xlim, ylim, n, cmap="viridis"):
+def get_colormap(cmap, log_colors):
+    cmap = plt.cm.get_cmap(cmap)
+    def normalize(x):
+        xmin = x.min()
+        xmax = x.max()
+        return (x-xmin)/(xmax-xmin)
+
+    def colors(x):
+        if log_colors:
+            return cmap(normalize(np.log(np.maximum(x, 1e-7))))
+        else:
+            return cmap(normalize(x))
+
+    return colors
+
+
+def get_function(func, xlim, ylim, n, cmap="viridis", log_colors=False):
     x = np.linspace(xlim[0], xlim[1], n)
     y = np.linspace(ylim[0], ylim[1], n)
     X, Y = np.meshgrid(x, y)
     Z = eval(func, dict(x=X, y=Y, np=np))
 
-    return Mesh.from_xyz(X, Y, Z, colormap=plt.cm.get_cmap(cmap))
+    return Mesh.from_xyz(X, Y, Z, colormap=get_colormap(cmap, log_colors))
 
 
 def get_axes():
@@ -83,8 +99,13 @@ def main(argv=None):
     )
     parser.add_argument(
         "--colormap",
-        default="viridis",
+        default="jet",
         help="Set the matplotlib colormap"
+    )
+    parser.add_argument(
+        "--log_colors",
+        action="store_true",
+        help="Use logspace for assigning the colors"
     )
     parser.add_argument(
         "--size",
@@ -131,7 +152,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     mesh = get_function(args.function, args.xlim, args.ylim,
-                        args.n_points, args.colormap)
+                        args.n_points, args.colormap, args.log_colors)
     axes = get_axes()
     show(
         [mesh] + ([axes] if args.axes else []),

@@ -285,8 +285,8 @@ class Mesh(Renderable):
 
         vertices = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T[faces]
         colors = (
-            colormap(vertices[:, -1])[:, :3]
-            if colormap else gray(vertices[:, -1])
+            colormap(Z.ravel()[faces])
+            if colormap else gray(z.ravel()[faces])
         )
         normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
 
