@@ -1,5 +1,12 @@
 # Offscreen Rendering
 
+<div class="admonition note">
+    <p class="admonition-title"> Note</p>
+    <p>If you experience problems running simple-3dviz on a headless server,
+    please follow the instructions in
+    <a href=https://moderngl.readthedocs.io/en/latest/the_guide/headless_ubunut18_server.html>ModernGL documentation</a>.</p>
+</div>
+
 simple-3dviz, due to ModernGL providing the OpenGL, does not require any
 graphical user interface for rendering the content of a scene. In particular,
 it provides three different ways to render the content of the framebuffer,
