@@ -7,109 +7,18 @@ from .base import Renderable
 from pyrr import Matrix44, matrix44
 
 
-class Mesh(Renderable):
-    """A mesh is a collection of triangles with normals and colors.
-
-    Arguments
-    ---------
-        vertices: array-like, the vertices of the triangles. Each triangle
-                  should be given on its own even if vertices are shared.
-        normals: array-like, per vertex normal vectors
-        colors: array-like, per vertex color as (r, g, b) floats or
-                (r, g, b, a) floats. If one color is given then it is assumed
-                to be for all vertices.
-        offset: A translation vector for all the vertices. It can be changed
-                after construction to animate the object together with the
-                `model_matrix` property.
-    """
-    def __init__(self, vertices, normals, colors, offset=[0, 0, 0.]):
+class MeshBase(Renderable):
+    """Abstract base class that implements functions commonly used by the
+    subclasses."""
+    def __init__(self, vertices, normals, offset=[0, 0, 0.]):
         self._vertices = np.asarray(vertices)
         self._normals = np.asarray(normals)
-        self._colors = np.asarray(colors)
         self._model_matrix = np.eye(4).astype(np.float32)
         self._offset = np.asarray(offset).astype(np.float32)
-
-        N = len(self._vertices)
-        if len(self._colors.shape) == 1:
-            if self._colors.size == 3:
-                self._colors = np.array(self._colors.tolist() + [1])
-            self._colors = self._colors[np.newaxis].repeat(N, axis=0)
-        elif self._colors.shape[1] == 3:
-            self._colors = np.hstack([self._colors, np.ones((N, 1))])
 
         self._prog = None
         self._vbo = None
         self._vao = None
-
-    def init(self, ctx):
-        self._prog = ctx.program(
-            vertex_shader="""
-                #version 330
-
-                uniform mat4 mvp;
-                uniform mat4 local_model;
-                uniform vec3 offset;
-                in vec3 in_vert;
-                in vec3 in_norm;
-                in vec4 in_color;
-                out vec3 v_vert;
-                out vec3 v_norm;
-                out vec4 v_color;
-
-                void main() {
-                    v_vert = in_vert;
-                    v_norm = in_norm;
-                    v_color = in_color;
-                    vec4 t_position = vec4(v_vert, 1.0);
-                    t_position = local_model * t_position;
-                    t_position = t_position + vec4(offset, 0.);
-                    gl_Position = mvp * t_position;
-                }
-            """,
-            fragment_shader="""
-                #version 330
-
-                uniform vec3 light;
-                in vec3 v_vert;
-                in vec3 v_norm;
-                in vec4 v_color;
-
-                out vec4 f_color;
-
-                void main() {
-                    float lum = dot(normalize(v_norm), normalize(v_vert - light));
-                    lum = acos(lum) / 3.14159265;
-                    lum = clamp(lum, 0.0, 1.0);
-
-                    f_color = vec4(v_color.xyz * lum, v_color.w);
-                }
-            """
-        )
-        self._vbo = ctx.buffer(np.hstack([
-            self._vertices,
-            self._normals,
-            self._colors
-        ]).astype(np.float32).tobytes())
-        self._vao = ctx.simple_vertex_array(
-            self._prog,
-            self._vbo,
-            "in_vert", "in_norm", "in_color"
-        )
-        self.model_matrix = self._model_matrix
-        self.offset = self._offset
-
-    def release(self):
-        self._prog.release()
-        self._vbo.release()
-        self._vao.release()
-
-    def render(self):
-        self._vao.render()
-
-    def update_uniforms(self, uniforms):
-        for k, v in uniforms:
-            if k in ["light", "mvp"]:
-                self._prog[k].write(v.tobytes())
 
     @property
     def bbox(self):
@@ -168,6 +77,145 @@ class Mesh(Renderable):
         if self._prog:
             self._prog["offset"].write(self._offset.tobytes())
 
+    def scale(self, s):
+        """Multiply all the vertices with a number s."""
+        self._vertices *= s
+        self._update_vbo()
+
+    def to_unit_cube(self):
+        """Transform the mesh such that it fits in the 0 centered unit cube."""
+        bbox = self.bbox
+        dims = bbox[1] - bbox[0]
+        self._vertices -= dims/2 + bbox[0]
+        self._vertices /= dims.max()
+        self._update_vbo()
+
+    def release(self):
+        self._prog.release()
+        self._vbo.release()
+        self._vao.release()
+
+    def render(self):
+        self._vao.render()
+
+    def update_uniforms(self, uniforms):
+        uniforms_list = self._get_uniforms_list()
+        for k, v in uniforms:
+            if k in uniforms_list:
+                self._prog[k].write(v.tobytes())
+
+    def _update_vbo(self):
+        """Update the vertex buffer object because one of the values has
+        changed (vertices, normals, etc)."""
+        raise NotImplementedError()
+
+
+class Mesh(MeshBase):
+    """A mesh is a collection of triangles with normals and colors.
+
+    Arguments
+    ---------
+        vertices: array-like, the vertices of the triangles. Each triangle
+                  should be given on its own even if vertices are shared.
+        normals: array-like, per vertex normal vectors
+        colors: array-like, per vertex color as (r, g, b) floats or
+                (r, g, b, a) floats. If one color is given then it is assumed
+                to be for all vertices.
+        offset: A translation vector for all the vertices. It can be changed
+                after construction to animate the object together with the
+                `model_matrix` property.
+    """
+    def __init__(self, vertices, normals, colors, offset=[0, 0, 0.]):
+        super(Mesh, self).__init__(vertices, normals, offset)
+
+        self._colors = np.asarray(colors)
+
+        N = len(self._vertices)
+        if len(self._colors.shape) == 1:
+            if self._colors.size == 3:
+                self._colors = np.array(self._colors.tolist() + [1])
+            self._colors = self._colors[np.newaxis].repeat(N, axis=0)
+        elif self._colors.shape[1] == 3:
+            self._colors = np.hstack([self._colors, np.ones((N, 1))])
+
+    def init(self, ctx):
+        self._prog = ctx.program(
+            vertex_shader="""
+                #version 330
+
+                uniform mat4 mvp;
+                uniform mat4 rotation;
+                uniform mat4 local_model;
+                uniform vec3 offset;
+                in vec3 in_vert;
+                in vec3 in_norm;
+                in vec4 in_color;
+                out vec3 v_vert;
+                out vec3 v_norm;
+                out vec4 v_color;
+
+                void main() {
+                    vec4 t_pos = vec4(in_vert, 1.0);
+                    vec3 t_nor = in_norm;
+
+                    t_pos = local_model * t_pos;
+                    t_pos = t_pos + vec4(offset, 0);
+                    t_pos = mvp * t_pos;
+
+                    t_nor = mat3(local_model) * t_nor;
+                    t_nor = mat3(rotation) * t_nor;
+
+                    // outputs
+                    v_vert = t_pos.xyz / t_pos.w;
+                    v_norm = t_nor;
+                    v_color = in_color;
+                    gl_Position = t_pos;
+                }
+            """,
+            fragment_shader="""
+                #version 330
+
+                uniform vec3 light;
+                in vec3 v_vert;
+                in vec3 v_norm;
+                in vec4 v_color;
+
+                out vec4 f_color;
+
+                void main() {
+                    float lum = dot(normalize(v_norm), normalize(v_vert - light));
+                    lum = acos(lum) / 3.14159265;
+                    lum = clamp(lum, 0.0, 1.0);
+
+                    f_color = vec4(v_color.xyz * lum, v_color.w);
+                }
+            """
+        )
+        self._vbo = ctx.buffer(np.hstack([
+            self._vertices,
+            self._normals,
+            self._colors
+        ]).astype(np.float32).tobytes())
+        self._vao = ctx.simple_vertex_array(
+            self._prog,
+            self._vbo,
+            "in_vert", "in_norm", "in_color"
+        )
+        self.model_matrix = self._model_matrix
+        self.offset = self._offset
+
+    def _get_uniforms_list(self):
+        """Return the used uniforms to fetch from the scene."""
+        return ["light", "mvp", "rotation"]
+
+    def _update_vbo(self):
+        """Write in the vertex buffer object the vertices, normals and
+        colors."""
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._vertices, self._normals, self._colors
+            ]).astype(np.float32).tobytes())
+
     def sort_triangles(self, point):
         """Sort the triangles such that the first is furthest from `point` and
         the last is the closest to `point`.
@@ -186,29 +234,7 @@ class Mesh(Renderable):
         self._vertices = vertices[idxs].reshape(-1, 3)
         self._normals = normals[idxs].reshape(-1, 3)
         self._colors = colors[idxs].reshape(-1, 4)
-        if self._vbo is not None:
-            self._vbo.write(np.hstack([
-                self._vertices, self._normals, self._colors
-            ]).astype(np.float32).tobytes())
-
-    def scale(self, s):
-        """Multiply all the vertices with a number s."""
-        self._vertices *= s
-        if self._vbo is not None:
-            self._vbo.write(np.hstack([
-                self._vertices, self._normals, self._colors
-            ]).astype(np.float32).tobytes())
-
-    def to_unit_cube(self):
-        """Transform the mesh such that it fits in the 0 centered unit cube."""
-        bbox = self.bbox
-        dims = bbox[1] - bbox[0]
-        self._vertices -= dims/2 + bbox[0]
-        self._vertices /= dims.max()
-        if self._vbo is not None:
-            self._vbo.write(np.hstack([
-                self._vertices, self._normals, self._colors
-            ]).astype(np.float32).tobytes())
+        self._update_vbo()
 
     @staticmethod
     def _triangle_normals(triangles):
