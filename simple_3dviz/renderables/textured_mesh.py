@@ -1,6 +1,7 @@
 
 import numpy as np
 
+from ..io import read_mesh_file, read_material_file
 from .mesh import MeshBase
 
 
@@ -183,6 +184,14 @@ class TexturedMesh(MeshBase):
         """Return the used uniforms to fetch from the scene."""
         return ["light", "camera_position", "mvp", "rotation"]
 
+    def _update_vbo(self):
+        """Write in the vertex buffer object the vertices, normals and
+        colors."""
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._vertices, self._normals, self._uv, self._material
+            ]).astype(np.float32).tobytes())
+
     @property
     def material(self):
         return self._material
@@ -227,3 +236,56 @@ class TexturedMesh(MeshBase):
         if self._bump_map is not None:
             self._bump_map.use(location=1)
         super(TexturedMesh, self).render()
+
+    @classmethod
+    def from_file(cls, filepath, material_filepath=None, ext=None,
+                  material_ext=None):
+        """Read the mesh from a file.
+
+        Arguments
+        ---------
+            filepath: Path to file or file object containing the mesh
+            material_filepath: Path to file containing the material
+            ext: The file extension (including the dot) if 'filepath' is an
+                 object
+            material_ext: The file extension (including the dot) if 'filepath'
+                          is an object
+        """
+        # Read the mesh
+        mesh = read_mesh_file(filepath, ext=ext)
+
+        # Extract the triangles
+        vertices = mesh.vertices
+
+        # Set a normal per triangle vertex
+        try:
+            normals = mesh.normals
+        except NotImplementedError:
+            normals = np.repeat(Mesh._triangle_normals(vertices), 3, axis=0)
+
+        # Set the uv coordinates
+        try:
+            uv = mesh.uv
+        except NotImplementedError:
+            uv = np.zeros(vertices.shape[0], 2)
+
+        # Parse the material information
+        mtl = None
+        material = Material()
+        try:
+            mtl = read_material_file(mesh.material_file)
+        except NotImplementedError:
+            if material_filepath is not None:
+                mtl = read_material_file(material_filepath, ext=material_ext)
+
+        if mtl is not None:
+            material = Material(
+                ambient=mtl.ambient,
+                diffuse=mtl.diffuse,
+                specular=mtl.specular,
+                Ns=mtl.Ns,
+                texture=mtl.texture,
+                bump_map=mtl.bump_map
+            )
+
+        return cls(vertices, normals, uv, material)

@@ -7,7 +7,7 @@ from tempfile import gettempdir
 
 import numpy as np
 
-from .. import Mesh
+from .. import Mesh, TexturedMesh
 from ..behaviours.keyboard import SnapshotOnKey
 from ..behaviours.misc import LightToCamera
 from ..window import show
@@ -91,10 +91,18 @@ def main(argv=None):
         default=path.join(gettempdir(), "frame_{:03d}.png"),
         help="The location to save the snapshot frame"
     )
+    parser.add_argument(
+        "--with_texture",
+        action="store_true",
+        help="Load mesh with texture"
+    )
 
     args = parser.parse_args(argv)
 
-    mesh = Mesh.from_file(args.file, color=args.color)
+    if args.with_texture:
+        mesh = TexturedMesh.from_file(args.file)
+    else:
+        mesh = Mesh.from_file(args.file, color=args.color)
 
     if args.auto:
         bbox = mesh.bbox

@@ -19,11 +19,26 @@ try:
 
         cv2.imwrite(path, frame[::-1])
 
+    def read_image(path):
+        img = cv2.imread(path, -1)
+        channels = img.shape[-1]
+        if channels == 1:
+            return img
+
+        # swap channels from bgr to rgb
+        image_data = [img[:, :, i] for i in range(channels)]
+        image_data[0], image_data[2] = image_data[2], image_data[0]
+        return np.stack(image_data, axis=-1)[::-1]
+
 except ImportError:
     from PIL import Image
+    import numpy as np
 
     def save_frame(path, frame):
         Image.fromarray(frame).save(path)
+
+    def read_image(path):
+        return np.asarray(Image.open(path))
 
 
 def render(renderables, behaviours, n_frames, size=(512, 512),
