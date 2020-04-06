@@ -9,6 +9,6 @@ __keywords__ = "graphics geometry 3D"
 __license__ = "MIT"
 __version__ = "0.1.1"
 
-from .renderables import Mesh, Spherecloud, Lines
+from .renderables import Mesh, TexturedMesh, Spherecloud, Lines
 from .scenes import Scene
 from .utils import render
