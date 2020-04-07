@@ -139,7 +139,7 @@ class TexturedMesh(MeshBase):
                     // fix normal based on the bump map
                     if (has_bump_map) {
                         vec3 bump_normal = texture2D(bump_map, v_uv).rgb;
-                        l_norm += bump_normal;
+                        l_norm += (dot(v_norm, v_norm) - 1) * bump_normal;
                     }
 
                     // ambient color
