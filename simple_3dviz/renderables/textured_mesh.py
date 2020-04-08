@@ -267,7 +267,7 @@ class TexturedMesh(MeshBase):
         try:
             uv = mesh.uv
         except NotImplementedError:
-            uv = np.zeros(vertices.shape[0], 2)
+            uv = np.zeros((vertices.shape[0], 2), dtype=np.float32)
 
         # Parse the material information
         mtl = None
