@@ -60,18 +60,42 @@ class PlyMeshReader(MeshReader):
         }
         super(PlyMeshReader, self).__init__(filename)
 
+    def _get_colors(self, p):
+        colors = np.zeros((p.count, 4), dtype=np.float32)
+        colors[:, 0] = p["red"]
+        colors[:, 1] = p["green"]
+        colors[:, 2] = p["blue"]
+        colors[:, 3] = 255
+        try:
+            colors[:, 3] = p["alpha"]
+        except ValueError:
+            pass
+        colors /= 255
+        return colors
+
     def read(self, filename):
+        # Make local copies of the names of the ply elements
         V = self._names["vertex"]
         F = self._names["face"]
         VI = self._names["vertex_indices"]
 
+        # Read the file into a PlyData datastucture
         data = PlyData.read(filename)
+
+        # Get the vertices
         if V in data:
             self._vertices = np.vstack([
                 data[V]["x"],
                 data[V]["y"],
                 data[V]["z"]
             ]).T
+
+            # If we have per vertex colors get them as well
+            per_vertex_colors = None
+            try:
+                per_vertex_colors = self._get_colors(data[V])
+            except ValueError:
+                pass
         if F in data:
             if VI is None:
                 VI = data[F].properties[0].name
@@ -85,23 +109,14 @@ class PlyMeshReader(MeshReader):
                 raise NotImplementedError(("Dealing with non-triangulated "
                                            "faces is not supported"))
             self._vertices = self._vertices[faces].reshape(-1, 3)
-            try:
-                colors = np.zeros(
-                    (data[F].count, 4),
-                    dtype=np.float32
-                )
-                colors[:, 0] = data[F]["red"]
-                colors[:, 1] = data[F]["green"]
-                colors[:, 2] = data[F]["blue"]
-                colors[:, 3] = 255
+            if per_vertex_colors is not None:
+                self._colors = per_vertex_colors[faces].reshape(-1, 4)
+            else:
                 try:
-                    colors[:, 3] = data[F]["alpha"]
+                    colors = self._get_colors(data[F])
+                    self._colors = np.repeat(colors, 3, axis=0)
                 except ValueError:
                     pass
-                colors /= 255
-                self._colors = np.repeat(colors, 3, axis=0)
-            except ValueError:
-                pass
 
 
 class ObjMeshReader(MeshReader):
