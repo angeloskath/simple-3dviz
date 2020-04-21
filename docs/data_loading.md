@@ -120,7 +120,7 @@ the `Mesh.from_voxel_grid()` method.
     <img src="../img/load_models_voxel_hearts_with_lines.gif" alt="Voxelized heart with lines" />
 </div>
 
-# Creating Point clouds
+## Creating Point clouds
 
 simple-3dviz also allows you to create and manipulate a point cloud directly
 from a numpy array using the `Spherecloud` renderable.
@@ -168,7 +168,7 @@ from a numpy array using the `Spherecloud` renderable.
     <img src="../img/load_models_spherical_spherecloud_plane.png" alt="Spherecloud plane" />
 </div>
 
-# Creating Geometric Primitives
+## Creating Geometric Primitives
 
 We use [superquadric surfaces](https://en.wikipedia.org/wiki/Superquadrics) for
 modelling geometric primitives. Superquadrics are a parametric family of shapes
@@ -214,7 +214,7 @@ containing a set of primitives using the `Mesh.from_superquadrics()` function.
     <img src="../img/load_models_sqs_more.png" alt="Superquadrics" />
 </div>
 
-# Creating Lines
+## Creating Lines
 
 simple-3dviz allows you to create lines directly from a numpy array that
 contains the line segments using the `Lines` object. Similar to the above, it
