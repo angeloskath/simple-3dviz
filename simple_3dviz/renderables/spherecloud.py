@@ -151,3 +151,28 @@ class Spherecloud(Renderable):
         for k, v in uniforms:
             if k in ["light", "mvp", "vm"]:
                 self._prog[k].write(v.tobytes())
+
+    @property
+    def bbox(self):
+        """The axis aligned bounding box of all the vertices as two
+        3-dimensional arrays containing the minimum and maximum for each
+        axis."""
+        return [
+            self._centers.min(axis=0),
+            self._centers.max(axis=0)
+        ]
+
+    def scale(self, s):
+        """Multiply all the vertices with a number s."""
+        self._centers *= s
+        if self._vbo is not None:
+            self._vbo.write(self.packed_parameters.tobytes())
+
+    def to_unit_cube(self):
+        """Transform the mesh such that it fits in the 0 centered unit cube."""
+        bbox = self.bbox
+        dims = bbox[1] - bbox[0]
+        self._centers -= dims/2 + bbox[0]
+        self._centers /= dims.max()
+        if self._vbo is not None:
+            self._vbo.write(self.packed_parameters.tobytes())
