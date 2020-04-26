@@ -76,7 +76,8 @@ def render(renderables, behaviours, n_frames, size=(512, 512),
             scene,                # the scene
             lambda: scene.frame,  # return the frame if needed
             None,                 # no mouse
-            None                  # no keyboard
+            None,                 # no keyboard
+            frame == n_frames-1   # is this the last frame?
         )
         remove = []
         for i, b in enumerate(behaviours):

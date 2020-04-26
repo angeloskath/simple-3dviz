@@ -83,16 +83,19 @@ class Behaviour(object):
                    mouse info
             keyboard: A simple_3dviz.behaviours.Behaviour.Keyboard object
                       providing keyboard info
+            last_call: bool, when true this means that the rendering has
+                       finished and the behaviours are called to clean up
             stop_propagation: bool, when set no more behaviours will be run
             done: bool, when set remove this behaviour from the list
             refresh: bool, when set make sure to redraw the window
         """
-        def __init__(self, window, scene, frame, mouse, keyboard):
+        def __init__(self, window, scene, frame, mouse, keyboard, last_call):
             self.window = window
             self.scene = scene
             self.frame = frame
             self.mouse = mouse
             self.keyboard = keyboard
+            self.last_call = last_call
 
             self._stop = False
             self._done = False

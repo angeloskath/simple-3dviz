@@ -25,6 +25,15 @@ class Window(BaseWindow):
             self.SetClientSize(size)
             self.Center()
             self.view = Window._Canvas(self._window, self)
+            self.Bind(wx.EVT_CLOSE, self._on_close)
+
+        def _on_close(self, event):
+            # If close was called before then close
+            if self._window._closing:
+                self.Destroy()
+
+            # otherwise just set the window to closing
+            self._window._closing = True
 
     class _Canvas(wx.glcanvas.GLCanvas):
         def __init__(self, window, parent):
@@ -79,6 +88,8 @@ class Window(BaseWindow):
         def _on_tick(self, event):
             if self._window._behave(event):
                 self.Refresh()
+            if self._window._closing:
+                self.GetParent()._on_close(None)
             self._window._mouse.wheel_rotation = 0
             self._window._keyboard.keys_up.clear()
 
@@ -120,6 +131,7 @@ class Window(BaseWindow):
         self._scene = None
         self._mouse = Behaviour.Mouse(None, None, None, None)
         self._keyboard = Behaviour.Keyboard([], [])
+        self._closing = False
 
     def _behave(self, event):
         # Make the behaviour parameters
@@ -128,7 +140,8 @@ class Window(BaseWindow):
             self._scene,
             self._get_frame,
             self._mouse,
-            self._keyboard
+            self._keyboard,
+            self._closing
         )
 
         # Run the behaviours
@@ -144,6 +157,10 @@ class Window(BaseWindow):
         # Remove the ones that asked to be removed
         for i in reversed(remove):
             self._behaviours.pop(i)
+
+        # If we are closing, remove all behaviours
+        if self._closing:
+            self._behaviours.clear()
 
         # Return whether we should paint again
         return params.refresh
