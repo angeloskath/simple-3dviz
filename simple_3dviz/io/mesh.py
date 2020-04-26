@@ -3,17 +3,7 @@
 import numpy as np
 from plyfile import PlyData
 
-
-def _get_file(filename, mode="r"):
-    if isinstance(filename, str):
-        return open(filename, mode)
-    return filename
-
-
-def _close_file(filename, f):
-    """Close the file if filename is a string."""
-    if hasattr(f, "close") and isinstance(filename, str):
-        f.close()
+from ._utils import get_file, close_file
 
 
 class MeshReader(object):
@@ -129,7 +119,7 @@ class ObjMeshReader(MeshReader):
             return int(face.split("/")[2])-1
 
         try:
-            f = _get_file(filename)
+            f = get_file(filename)
 
             lines = f.readlines()
 
@@ -160,14 +150,14 @@ class ObjMeshReader(MeshReader):
             except IndexError:
                 pass
         finally:
-            _close_file(filename, f)
+            close_file(filename, f)
 
 
 class OffMeshReader(MeshReader):
     """Read OFF mesh files."""
     def read(self, filename):
         try:
-            f = _get_file(filename)
+            f = get_file(filename)
 
             # Read lines and clean them from comments and empty lines
             lines = f.readlines()
@@ -215,7 +205,7 @@ class OffMeshReader(MeshReader):
             elif faces.shape[1] > 4:
                 self._colors = np.repeat(faces[:, 4:], 3, axis=0)
         finally:
-            _close_file(filename, f)
+            close_file(filename, f)
 
 
 class StlMeshReader(MeshReader):
@@ -224,7 +214,7 @@ class StlMeshReader(MeshReader):
         # Decide if it is an ASCII STL or not
         ascii_stl = True
         try:
-            f = _get_file(filename, "rb")
+            f = get_file(filename, "rb")
             try:
                 past_header = str(f.read(100), encoding="ascii")
             except UnicodeDecodeError:
@@ -287,4 +277,4 @@ class StlMeshReader(MeshReader):
                 self._vertices = mesh["vertices"].reshape(-1, 3)
                 self._normals = np.repeat(mesh["normal"], 3, 0).reshape(-1, 3)
         finally:
-            _close_file(filename, f)
+            close_file(filename, f)

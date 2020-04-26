@@ -2,6 +2,7 @@
 import moderngl
 import numpy as np
 
+from ..io.voxels import read_binvox
 from .base import Renderable
 
 
@@ -111,7 +112,7 @@ class Lines(Renderable):
         self._prog["width"].value = self._width
 
     @classmethod
-    def from_voxel_grid(cls, voxels, colors, width=0.001,
+    def from_voxel_grid(cls, voxels, colors=(0.1, 0.1, 0.1), width=0.001,
                         bbox=[[-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]]):
         """Create a voxel grid wire frame.
 
@@ -154,4 +155,28 @@ class Lines(Renderable):
         # Finally create the edges of each cube
         points = centers[:, np.newaxis] + edges[np.newaxis]
 
+        # Convert the colors to per edge color
+        if len(colors.shape) == 1:
+            colors = np.array([colors]*(points.size // 3))
+        elif len(colors.shape) == 4:
+            colors = colors[voxels]
+            colors = np.repeat(colors, len(edges), axis=0)
+
         return cls(points.reshape(-1, 3), colors, width)
+
+    @classmethod
+    def from_binvox(cls, binvoxfile, colors=(0.1, 0.1, 0.1), width=0.001):
+        """Create a wireframe for voxel grid read from a binvox file.
+
+        Arguments
+        ---------
+            binvoxfile: str or file object that contains the voxelgrid data in
+                        binvox format
+            colors: The colors of the voxels to pass to from_voxel_grid().
+            width: The width of the lines for the wireframe.
+        """
+        voxelgrid, translation, scale = read_binvox(binvoxfile)
+        bbox = np.array([[0., 0, 0], [1, 1, 1]]) * scale + translation
+
+        return cls.from_voxel_grid(voxelgrid, colors=colors, bbox=bbox,
+                                   width=width)

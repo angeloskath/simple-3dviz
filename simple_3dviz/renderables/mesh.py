@@ -2,6 +2,7 @@
 import numpy as np
 
 from ..io import read_mesh_file
+from ..io.voxels import read_binvox
 from .base import Renderable
 
 from pyrr import Matrix44, matrix44
@@ -419,6 +420,9 @@ class Mesh(Renderable):
         ---------
             voxels: Array of 3D values, with truthy values indicating which
                     voxels to fill
+            colors: The colors of the voxels. If colors is a vector then
+                    it is the same for all voxels. If it is a 4 dimensional
+                    tensor then a color per voxel is assumed.
         """
         # Make sure voxels, colors and bbox are arrays
         voxels, colors, bbox = list(map(np.asarray, [voxels, colors, bbox]))
@@ -453,6 +457,23 @@ class Mesh(Renderable):
             colors = colors[voxels]
 
         return cls.from_boxes(centers=centers, sizes=sizes, colors=colors)
+
+    @classmethod
+    def from_binvox(cls, binvoxfile, colors=(0.3, 0.3, 0.3)):
+        """Create a voxel grid from a binvox file.
+
+        For the format see https://patrickmin.com/binvox/binvox.html .
+        
+        Arguments
+        ---------
+            binvoxfile: str or file object that contains the voxelgrid data in
+                        binvox format
+            colors: The colors of the voxels to pass to from_voxel_grid().
+        """
+        voxelgrid, translation, scale = read_binvox(binvoxfile)
+        bbox = np.array([[0., 0, 0], [1, 1, 1]]) * scale + translation
+
+        return cls.from_voxel_grid(voxelgrid, colors=colors, bbox=bbox)
 
     @classmethod
     def from_superquadrics(cls, alpha, epsilon, translation, rotation, colors,
