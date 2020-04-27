@@ -23,7 +23,7 @@ except ImportError:
     from PIL import Image
 
     def save_frame(path, frame):
-        Image.fromarray(frame).save(path)
+        Image.fromarray(frame[::-1]).save(path)
 
 
 def render(renderables, behaviours, n_frames, size=(512, 512),
