@@ -111,6 +111,26 @@ class Lines(Renderable):
                 self._prog[k].write(v.tobytes())
         self._prog["width"].value = self._width
 
+    @property
+    def bbox(self):
+        """The axis aligned bounding box of all the vertices as two
+        3-dimensional arrays containing the minimum and maximum for each
+        axis."""
+        return [
+            self._points.min(axis=0),
+            self._points.max(axis=0)
+        ]
+
+    def to_unit_cube(self):
+        bbox = self.bbox
+        dims = bbox[1] - bbox[0]
+        self._points -= dims/2 + bbox[0]
+        self._points /= dims.max()
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._points, self._colors
+            ]).astype(np.float32).tobytes())
+
     @classmethod
     def from_voxel_grid(cls, voxels, colors=(0.1, 0.1, 0.1), width=0.001,
                         bbox=[[-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]]):
