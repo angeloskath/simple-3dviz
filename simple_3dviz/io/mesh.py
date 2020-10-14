@@ -118,6 +118,12 @@ class ObjMeshReader(MeshReader):
         def extract_normal(face):
             return int(face.split("/")[2])-1
 
+        def triangulate_face(face):
+            return [
+                [face[0], face[i-1], face[i]]
+                for i in range(2, len(face))
+            ]
+
         try:
             f = get_file(filename)
 
@@ -129,10 +135,15 @@ class ObjMeshReader(MeshReader):
                 list(map(float, l.strip().split()[1:4]))
                 for l in lines if l.startswith("v ")
             ], dtype=np.float32)
-            faces = np.array([
-                list(map(extract_vertex, l.strip().split()[1:]))
-                for l in lines if l.startswith("f ")
-            ])
+            faces = sum(
+                [
+                    triangulate_face(
+                        list(map(extract_vertex, l.strip().split()[1:]))
+                    ) for l in lines if l.startswith("f ")
+                ],
+                []
+            )
+            faces = np.array(faces)
             self._vertices = vertices[faces].reshape(-1, 3)
 
             # Collect all the vertex normals, namely lines starting with 'vn'
