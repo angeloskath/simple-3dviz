@@ -55,16 +55,19 @@ class MouseRotate(Behaviour):
 
 class MouseZoom(Behaviour):
     """Zoom in/out with the mouse scroll wheel."""
-    def __init__(self, delta=1.):
-        self._delta = 1.
+    def __init__(self, delta=0.9):
+        self._delta = delta
 
     def behave(self, params):
         rotations = params.mouse.wheel_rotation
         if rotations != 0:
             cam_position = params.scene.camera_position
             cam_target = params.scene.camera_target
-            ray = vector.normalize(cam_target - cam_position)
-            cam_position += ray * self._delta * rotations
+            ray = cam_target - cam_position
+            if rotations > 0:
+                cam_position += ray * (1-self._delta)
+            else:
+                cam_position -= ray * (1-self._delta)
             params.scene.camera_position = cam_position
             params.refresh = True
 
