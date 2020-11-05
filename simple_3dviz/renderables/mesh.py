@@ -301,7 +301,7 @@ class Mesh(Renderable):
         ))
         vertices = vertices[faces].reshape(-1, 3)
         normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
-        if len(colors.shape) == 2 and len(colors) == len(vertices):
+        if len(colors.shape) != 1:
             colors = colors[faces].reshape(-1, 3)
 
         return cls(vertices, normals, colors)
