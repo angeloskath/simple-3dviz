@@ -8,10 +8,16 @@ from tempfile import gettempdir
 
 import numpy as np
 
-from .. import Mesh
+from .. import Mesh, Scene
 from ..behaviours.keyboard import SnapshotOnKey
 from ..behaviours.misc import LightToCamera
-from ..window import show
+from ..utils import save_frame
+try:
+    from ..window import show
+    no_gui = False
+except ImportError:
+    no_gui = True
+
 
 # The tab20 colormap from matplotlib
 tab20 = [
@@ -131,6 +137,10 @@ def main(argv=None):
         default=path.join(gettempdir(), "frame_{:03d}.png"),
         help="The location to save the snapshot frame"
     )
+    parser.add_argument(
+        "--direct_render",
+        help="If provided render to this file and exit"
+    )
 
     args = parser.parse_args(argv)
 
@@ -171,10 +181,26 @@ def main(argv=None):
     if args.light is None:
         behaviours.append(LightToCamera())
 
-    show(
-        meshes,
-        size=args.size, background=args.background, title="Mesh Viewer",
-        camera_position=args.camera_position, camera_target=args.camera_target,
-        up_vector=args.up, light=args.light,
-        behaviours=behaviours
-    )
+    if args.direct_render:
+        scene = Scene(size=args.size, background=args.background)
+        for m in meshes:
+            scene.add(m)
+        scene.camera_position = args.camera_position
+        scene.camera_target = args.camera_target
+        scene.up_vector = args.up
+        if args.light is None:
+            scene.light = args.camera_position
+        else:
+            scene.light = args.light
+        scene.render()
+        save_frame(args.direct_render, scene.frame)
+    else:
+        show(
+            meshes,
+            size=args.size, background=args.background, title="Mesh Viewer",
+            camera_position=args.camera_position,
+            camera_target=args.camera_target,
+            up_vector=args.up,
+            light=args.light,
+            behaviours=behaviours
+        )
