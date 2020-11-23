@@ -58,13 +58,22 @@ class Mesh(Renderable):
                 out vec4 v_color;
 
                 void main() {
-                    v_vert = in_vert;
-                    v_norm = in_norm;
                     v_color = in_color;
-                    vec4 t_position = vec4(v_vert, 1.0);
+
+                    // Compute the position of the vertex
+                    vec4 t_position = vec4(in_vert, 1.0);
                     t_position = local_model * t_position;
                     t_position = t_position + vec4(offset, 0.);
-                    gl_Position = mvp * t_position;
+                    v_vert = t_position.xyz / t_position.w;
+                    // TODO: We should probably use the global model matrix as
+                    //       well but it is left for the future 
+                    t_position = mvp * t_position;
+                    gl_Position = t_position;
+
+                    // Compute the normal of the vertex
+                    vec4 t_normal = vec4(in_norm, 1.0);
+                    t_normal = local_model * t_normal;
+                    v_norm = t_normal.xyz / t_normal.w;
                 }
             """,
             fragment_shader="""
@@ -195,6 +204,14 @@ class Mesh(Renderable):
     def scale(self, s):
         """Multiply all the vertices with a number s."""
         self._vertices *= s
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._vertices, self._normals, self._colors
+            ]).astype(np.float32).tobytes())
+
+    def translate(self, t):
+        """Translate all the vertices with a vector t."""
+        self._vertices += t
         if self._vbo is not None:
             self._vbo.write(np.hstack([
                 self._vertices, self._normals, self._colors

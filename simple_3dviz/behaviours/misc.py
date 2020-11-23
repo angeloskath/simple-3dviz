@@ -92,3 +92,17 @@ class SortTriangles(Behaviour):
                 if hasattr(r, "sort_triangles"):
                     r.sort_triangles(camera)
             params.refresh = True
+
+
+class StartStopBehaviour(Behaviour):
+    """Start and stop the decorated behaviour for the given frame counts."""
+    def __init__(self, behaviour, start=0, stop=100):
+        self._cnt = 0
+        self._behaviour = behaviour
+        self._start = start
+        self._stop = stop
+
+    def behave(self, params):
+        self._cnt += 1
+        if self._stop >= self._cnt > self._start:
+            return self._behaviour.behave(params)

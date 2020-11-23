@@ -17,6 +17,20 @@ class Trajectory(object):
         raise NotImplementedError()
 
 
+class StartStopTrajectory(Trajectory):
+    """Start and stop the decorated trajectory for the given values of t by
+    mapping the interval to 0-1 and everything outside the interval to either 0
+    or 1."""
+    def __init__(self, trajectory, start=0.0, stop=1.0):
+        self._trajectory = trajectory
+        self._start = start
+        self._stop = stop
+
+    def get_value(self, t):
+        tt = (t - self._start) / (self._stop - self._start)
+        return self._trajectory.get_value(min(1.0, max(0.0, tt)))
+
+
 class Linear(Trajectory):
     """From a to b the fastest way possible :-)."""
     def __init__(self, a, b):

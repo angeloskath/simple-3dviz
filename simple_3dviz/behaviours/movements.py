@@ -46,6 +46,26 @@ class LocalModelRotation(Behaviour):
         params.refresh = refresh
 
 
+class RotateRenderables(Behaviour):
+    """Rotate specific renderables in the scene.
+
+    Arguments
+    ---------
+        renderables: List of renderables to be rotated
+        axis: array-like (3,) the axis around which to rotate
+        speed: float, radians per tick
+    """
+    def __init__(self, renderables, axis=[0, 0, 1.], speed=np.pi/90):
+        self.renderables = renderables
+        self._axis = axis
+        self._speed = speed
+
+    def behave(self, params):
+        for r in self.renderables:
+            r.rotate_axis(self._axis, self._speed)
+        params.refresh = True
+
+
 class _TrajectoryMovement(Behaviour):
     """Abstract class that implements adjusting a quantity based on a passed
     trajectory.
@@ -67,6 +87,24 @@ class _TrajectoryMovement(Behaviour):
 
     def _adjust(self, params, v):
         raise NotImplementedError()
+
+
+class RenderableOffset(_TrajectoryMovement):
+    """Move a renderable by adjusting their offset property.
+
+    Arguments
+    ---------
+        renderable: A renderable to be moved
+        trajectory: The Trajectory object that provides values
+        speed: percentage of completion per tick
+    """
+    def __init__(self, renderable, trajectory, speed=0.01):
+        super().__init__(trajectory, speed)
+        self.renderable = renderable
+
+    def _adjust(self, params, v):
+        self.renderable.offset = v
+        params.refresh = True
 
 
 class CameraTrajectory(_TrajectoryMovement):
