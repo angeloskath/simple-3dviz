@@ -52,6 +52,14 @@ def list_of(f):
             raise ValueError("Error when parsing the list of elements") from e
     return inner
 
+def or_type(f1, f2):
+    def inner(x):
+        try:
+            return f1(x)
+        except ValueError:
+            return f2(x)
+    return inner
+
 
 def int_tuple(n):
     def inner(x):
@@ -88,7 +96,7 @@ def main(argv=None):
     )
     parser.add_argument(
         "--background", "-b",
-        type=f_tuple(4),
+        type=or_type(f_tuple(4), f_tuple(3)),
         default=(0.7, 0.7, 0.7, 1),
         help="The rgba background color"
     )
@@ -117,7 +125,7 @@ def main(argv=None):
     )
     parser.add_argument(
         "--color",
-        type=list_of(f_tuple(3)),
+        type=list_of(or_type(f_tuple(4), f_tuple(3))),
         default=[(0.3, 0.3, 0.3)],
         help="Choose a color for the mesh"
     )
@@ -176,7 +184,7 @@ def main(argv=None):
                 m.scale(s)
 
     behaviours = [
-        SnapshotOnKey(path=args.save_frame, keys={"<ctrl>", "S"})
+        SnapshotOnKey(path=args.save_frame, keys={"<ctrl>", "S"}),
     ]
     if args.light is None:
         behaviours.append(LightToCamera())
@@ -184,6 +192,7 @@ def main(argv=None):
     if args.direct_render:
         scene = Scene(size=args.size, background=args.background)
         for m in meshes:
+            m.sort_triangles(args.camera_position)
             scene.add(m)
         scene.camera_position = args.camera_position
         scene.camera_target = args.camera_target
