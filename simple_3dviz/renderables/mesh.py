@@ -145,7 +145,6 @@ class Mesh(MeshBase):
                 #version 330
 
                 uniform mat4 mvp;
-                uniform mat4 rotation;
                 uniform mat4 local_model;
                 uniform vec3 offset;
                 in vec3 in_vert;
@@ -208,7 +207,7 @@ class Mesh(MeshBase):
 
     def _get_uniforms_list(self):
         """Return the used uniforms to fetch from the scene."""
-        return ["light", "mvp", "rotation"]
+        return ["light", "mvp"]
 
     def _update_vbo(self):
         """Write in the vertex buffer object the vertices, normals and
