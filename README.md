@@ -3,7 +3,7 @@ simple-3dviz
 
 [![PyPI version](https://badge.fury.io/py/simple-3dviz.svg)](https://badge.fury.io/py/simple-3dviz)
 
-simple-3dviz provides a set of simple and reusable tools for visualizing 3D
+[simple-3dviz](http://simple-3dviz.com) provides a set of simple and reusable tools for visualizing 3D
 data using Python and OpenGL. The goal of this library is to provide an easy
 way to visualize 3D objects with hundreds of thousands of vertices efficiently
 just with few lines of code. It can be used for visualizing various renderables
