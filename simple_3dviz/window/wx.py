@@ -1,4 +1,3 @@
-
 import moderngl
 import numpy as np
 import wx
@@ -30,6 +29,7 @@ class Window(BaseWindow):
         def _on_close(self, event):
             # If close was called before then close
             if self._window._closing:
+                self.view._on_close(event)
                 self.Destroy()
 
             # otherwise just set the window to closing
@@ -65,6 +65,10 @@ class Window(BaseWindow):
                 framebuffer.read(components=4),
                 dtype=np.uint8
             ).reshape(*(framebuffer.size + (4,)))
+
+        def _on_close(self, event):
+            self._ticker.Stop()
+            self.Unbind(wx.EVT_TIMER)
 
         def _on_paint(self, event):
             self.SetCurrent(self._context)
