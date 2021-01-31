@@ -65,6 +65,9 @@ class BaseScene(object):
             self._renderables[renderable].release()
             del self._renderables[renderable]
 
+    def clear(self):
+        self._renderables.clear()
+
     @property
     def uniforms(self):
         """Return list of tuples with uniform name and value provided by the

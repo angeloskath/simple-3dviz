@@ -28,7 +28,8 @@ except ImportError:
 
 def render(renderables, behaviours, n_frames, size=(512, 512),
            background=(1,)*4, camera_position=(-2, -2, -2),
-           camera_target=(0, 0, 0), up_vector=(0, 0, 1), light=None):
+           camera_target=(0, 0, 0), up_vector=(0, 0, 1), light=None,
+           scene=None):
     """Render a list of primitives for a given number of frames calling the
     passed behaviours after every frame.
 
@@ -45,9 +46,16 @@ def render(renderables, behaviours, n_frames, size=(512, 512),
         camera_target: (x, y, z) the point that the camera looks at
         up_vector: (x, y, z) defines the floor and sky
         light: (x, y, z) defines the position of the light source
+        scene: An optional scene to reuse
     """
+    # Create the scene or clear it if it is provided
+    if scene is None:
+        scene = Scene(size=size)
+    else:
+        scene.clear()
+
     # Set up the scene
-    scene = Scene(size=size, background=background)
+    scene.background = background
     scene.camera_position = camera_position
     scene.camera_target = camera_target
     scene.up_vector = up_vector
