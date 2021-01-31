@@ -55,9 +55,11 @@ class CameraReport(OnKeys):
     def action(self, params):
         def csv(x):
             return ",".join(list(map(str, x)))
-        print("Camera Target: " + csv(params.scene.camera_target))
-        print("Camera Position: " + csv(params.scene.camera_position))
-        print("Up Vector: " + csv(params.scene.up_vector))
+        print("--camera_target='{}' --camera_position='{}' --up='{}'".format(
+            csv(params.scene.camera_target),
+            csv(params.scene.camera_position),
+            csv(params.scene.up_vector)
+        ))
 
 
 class SortTriangles(OnKeys):
