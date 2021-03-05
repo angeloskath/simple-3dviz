@@ -8,7 +8,110 @@ from .base import Renderable
 from pyrr import Matrix44, matrix44
 
 
-class Mesh(Renderable):
+class MeshBase(Renderable):
+    """Abstract base class that implements functions commonly used by the
+    subclasses."""
+    def __init__(self, vertices, normals, offset=[0, 0, 0.]):
+        self._vertices = np.asarray(vertices)
+        self._normals = np.asarray(normals)
+        self._model_matrix = np.eye(4).astype(np.float32)
+        self._offset = np.asarray(offset).astype(np.float32)
+
+        self._prog = None
+        self._vbo = None
+        self._vao = None
+
+    @property
+    def bbox(self):
+        """The axis aligned bounding box of all the vertices as two
+        3-dimensional arrays containing the minimum and maximum for each
+        axis."""
+        return [
+            self._vertices.min(axis=0),
+            self._vertices.max(axis=0)
+        ]
+
+    @property
+    def model_matrix(self):
+        """An affine transformation matrix (4x4) applied to the mesh before
+        rendering. Can be changed to animate the mesh."""
+        return self._model_matrix
+
+    @model_matrix.setter
+    def model_matrix(self, v):
+        self._model_matrix = np.asarray(v).astype(np.float32)
+        if self._prog:
+            self._prog["local_model"].write(self._model_matrix.tobytes())
+
+    def rotate_x(self, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the x axis."""
+        m = Matrix44.from_x_rotation(angle)
+        self.model_matrix = m.dot(self.model_matrix)
+
+    def rotate_y(self, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the y axis."""
+        m = Matrix44.from_y_rotation(angle)
+        self.model_matrix = m.dot(self.model_matrix)
+
+    def rotate_z(self, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the z axis."""
+        m = Matrix44.from_z_rotation(angle)
+        self.model_matrix = m.dot(self.model_matrix)
+
+    def rotate_axis(self, axis, angle):
+        """Helper function that multiplies the `model_matrix` with a rotation
+        matrix around the passed in axis."""
+        m = matrix44.create_from_axis_rotation(axis, angle)
+        self.model_matrix = m.dot(self.model_matrix)
+
+    @property
+    def offset(self):
+        """A translation vector for the mesh vertices."""
+        return self._offset
+
+    @offset.setter
+    def offset(self, v):
+        self._offset = np.asarray(v).astype(np.float32)
+        if self._prog:
+            self._prog["offset"].write(self._offset.tobytes())
+
+    def scale(self, s):
+        """Multiply all the vertices with a number s."""
+        self._vertices *= s
+        self._update_vbo()
+
+    def to_unit_cube(self):
+        """Transform the mesh such that it fits in the 0 centered unit cube."""
+        bbox = self.bbox
+        dims = bbox[1] - bbox[0]
+        self._vertices -= dims/2 + bbox[0]
+        self._vertices /= dims.max()
+        self._update_vbo()
+
+    def release(self):
+        self._prog.release()
+        self._vbo.release()
+        self._vao.release()
+
+    def render(self):
+        self._vao.render()
+
+    def update_uniforms(self, uniforms):
+        uniforms_list = self._get_uniforms_list()
+        for k, v in uniforms:
+            if k in uniforms_list:
+                self._prog[k].write(v.tobytes())
+
+    def _update_vbo(self):
+        """Update the vertex buffer object because one of the values has
+        changed (vertices, normals, etc)."""
+        raise NotImplementedError()
+
+
+class Mesh(MeshBase):
     """A mesh is a collection of triangles with normals and colors.
 
     Arguments
@@ -24,11 +127,9 @@ class Mesh(Renderable):
                 `model_matrix` property.
     """
     def __init__(self, vertices, normals, colors, offset=[0, 0, 0.]):
-        self._vertices = np.asarray(vertices)
-        self._normals = np.asarray(normals)
+        super(Mesh, self).__init__(vertices, normals, offset)
+
         self._colors = np.asarray(colors)
-        self._model_matrix = np.eye(4).astype(np.float32)
-        self._offset = np.asarray(offset).astype(np.float32)
 
         N = len(self._vertices)
         if len(self._colors.shape) == 1:
@@ -37,10 +138,6 @@ class Mesh(Renderable):
             self._colors = self._colors[np.newaxis].repeat(N, axis=0)
         elif self._colors.shape[1] == 3:
             self._colors = np.hstack([self._colors, np.ones((N, 1))])
-
-        self._prog = None
-        self._vbo = None
-        self._vao = None
 
     def init(self, ctx):
         self._prog = ctx.program(
@@ -108,75 +205,17 @@ class Mesh(Renderable):
         self.model_matrix = self._model_matrix
         self.offset = self._offset
 
-    def release(self):
-        self._prog.release()
-        self._vbo.release()
-        self._vao.release()
+    def _get_uniforms_list(self):
+        """Return the used uniforms to fetch from the scene."""
+        return ["light", "mvp"]
 
-    def render(self):
-        self._vao.render()
-
-    def update_uniforms(self, uniforms):
-        for k, v in uniforms:
-            if k in ["light", "mvp"]:
-                self._prog[k].write(v.tobytes())
-
-    @property
-    def bbox(self):
-        """The axis aligned bounding box of all the vertices as two
-        3-dimensional arrays containing the minimum and maximum for each
-        axis."""
-        return [
-            self._vertices.min(axis=0),
-            self._vertices.max(axis=0)
-        ]
-
-    @property
-    def model_matrix(self):
-        """An affine transformation matrix (4x4) applied to the mesh before
-        rendering. Can be changed to animate the mesh."""
-        return self._model_matrix
-
-    @model_matrix.setter
-    def model_matrix(self, v):
-        self._model_matrix = np.asarray(v).astype(np.float32)
-        if self._prog:
-            self._prog["local_model"].write(self._model_matrix.tobytes())
-
-    def rotate_x(self, angle):
-        """Helper function that multiplies the `model_matrix` with a rotation
-        matrix around the x axis."""
-        m = Matrix44.from_x_rotation(angle)
-        self.model_matrix = m.dot(self.model_matrix)
-
-    def rotate_y(self, angle):
-        """Helper function that multiplies the `model_matrix` with a rotation
-        matrix around the y axis."""
-        m = Matrix44.from_y_rotation(angle)
-        self.model_matrix = m.dot(self.model_matrix)
-
-    def rotate_z(self, angle):
-        """Helper function that multiplies the `model_matrix` with a rotation
-        matrix around the z axis."""
-        m = Matrix44.from_z_rotation(angle)
-        self.model_matrix = m.dot(self.model_matrix)
-
-    def rotate_axis(self, axis, angle):
-        """Helper function that multiplies the `model_matrix` with a rotation
-        matrix around the passed in axis."""
-        m = matrix44.create_from_axis_rotation(axis, angle)
-        self.model_matrix = m.dot(self.model_matrix)
-
-    @property
-    def offset(self):
-        """A translation vector for the mesh vertices."""
-        return self._offset
-
-    @offset.setter
-    def offset(self, v):
-        self._offset = np.asarray(v).astype(np.float32)
-        if self._prog:
-            self._prog["offset"].write(self._offset.tobytes())
+    def _update_vbo(self):
+        """Write in the vertex buffer object the vertices, normals and
+        colors."""
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._vertices, self._normals, self._colors
+            ]).astype(np.float32).tobytes())
 
     def sort_triangles(self, point):
         """Sort the triangles such that the first is furthest from `point` and
@@ -196,26 +235,17 @@ class Mesh(Renderable):
         self._vertices = vertices[idxs].reshape(-1, 3)
         self._normals = normals[idxs].reshape(-1, 3)
         self._colors = colors[idxs].reshape(-1, 4)
-        if self._vbo is not None:
-            self._vbo.write(np.hstack([
-                self._vertices, self._normals, self._colors
-            ]).astype(np.float32).tobytes())
+        self._update_vbo()
 
     def scale(self, s):
         """Multiply all the vertices with a number s."""
         self._vertices *= s
-        if self._vbo is not None:
-            self._vbo.write(np.hstack([
-                self._vertices, self._normals, self._colors
-            ]).astype(np.float32).tobytes())
+        self._update_vbo()
 
     def translate(self, t):
         """Translate all the vertices with a vector t."""
         self._vertices += t
-        if self._vbo is not None:
-            self._vbo.write(np.hstack([
-                self._vertices, self._normals, self._colors
-            ]).astype(np.float32).tobytes())
+        self._update_vbo()
 
     def to_unit_cube(self):
         """Transform the mesh such that it fits in the 0 centered unit cube."""
@@ -223,10 +253,7 @@ class Mesh(Renderable):
         dims = bbox[1] - bbox[0]
         self._vertices -= dims/2 + bbox[0]
         self._vertices /= dims.max()
-        if self._vbo is not None:
-            self._vbo.write(np.hstack([
-                self._vertices, self._normals, self._colors
-            ]).astype(np.float32).tobytes())
+        self._update_vbo()
 
     @staticmethod
     def _triangle_normals(triangles):

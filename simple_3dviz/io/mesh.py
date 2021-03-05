@@ -1,6 +1,7 @@
 """Load a mesh into three arrays vertices, faces and vertex_colors."""
 
 import numpy as np
+import os
 from plyfile import PlyData
 
 from ._utils import get_file, close_file
@@ -13,6 +14,8 @@ class MeshReader(object):
         self._vertices = None
         self._normals = None
         self._colors = None
+        self._uv = None
+        self._material_file = None
 
         if filename is not None:
             self.read(filename)
@@ -37,6 +40,18 @@ class MeshReader(object):
         if self._colors is None:
             raise NotImplementedError()
         return self._colors
+
+    @property
+    def uv(self):
+        if self._uv is None:
+            raise NotImplementedError()
+        return self._uv
+
+    @property
+    def material_file(self):
+        if self._material_file is None:
+            raise NotImplementedError()
+        return self._material_file
 
 
 class PlyMeshReader(MeshReader):
@@ -111,6 +126,16 @@ class PlyMeshReader(MeshReader):
 
 class ObjMeshReader(MeshReader):
     """Read OBJ mesh files."""
+    def _triangulate_faces(self, faces):
+        triangles = []
+        for f in faces:
+            if len(f) == 3:
+                triangles.append(f)
+            else:
+                for i in range(2, len(f)):
+                    triangles.append([f[0], f[i-1], f[i]])
+        return triangles
+
     def read(self, filename):
         def extract_vertex(face):
             return int(face.split("/")[0])-1
@@ -118,11 +143,8 @@ class ObjMeshReader(MeshReader):
         def extract_normal(face):
             return int(face.split("/")[2])-1
 
-        def triangulate_face(face):
-            return [
-                [face[0], face[i-1], face[i]]
-                for i in range(2, len(face))
-            ]
+        def extract_uv(face):
+            return int(face.split("/")[1])-1
 
         try:
             f = get_file(filename)
@@ -135,15 +157,10 @@ class ObjMeshReader(MeshReader):
                 list(map(float, l.strip().split()[1:4]))
                 for l in lines if l.startswith("v ")
             ], dtype=np.float32)
-            faces = sum(
-                [
-                    triangulate_face(
-                        list(map(extract_vertex, l.strip().split()[1:]))
-                    ) for l in lines if l.startswith("f ")
-                ],
-                []
-            )
-            faces = np.array(faces)
+            faces = np.array(self._triangulate_faces([
+                list(map(extract_vertex, l.strip().split()[1:]))
+                for l in lines if l.startswith("f ")
+            ]))
             self._vertices = vertices[faces].reshape(-1, 3)
 
             # Collect all the vertex normals, namely lines starting with 'vn'
@@ -153,11 +170,48 @@ class ObjMeshReader(MeshReader):
                     list(map(float, l.strip().split()[1:]))
                     for l in lines if l.startswith("vn ")
                 ])
-                faces = np.array([
+                faces = np.array(self._triangulate_faces([
                     list(map(extract_normal, l.strip().split()[1:]))
                     for l in lines if l.startswith("f ")
-                ])
+                ]))
                 self._normals = normals[faces].reshape(-1, 3)
+            except IndexError:
+                pass
+
+            # Collect all the texture coordinates, namely u, v [,w] coordinates
+            try:
+                uv = np.array([
+                    list(map(float, l.strip().split()[1:]))
+                    for l in lines if l.startswith("vt ")
+                ])
+                faces = np.array(self._triangulate_faces([
+                    list(map(extract_uv, l.strip().split()[1:]))
+                    for l in lines if l.startswith("f ")
+                ]))
+                self._uv = uv[faces].reshape(-1, uv.shape[1])[:, :2]
+            except IndexError:
+                pass
+
+            # Collect a material file
+            try:
+                material_file = [
+                    l.strip().split()[1:][0]
+                    for l in lines if l.startswith("mtllib")
+                ][0]
+
+                if isinstance(filename, str):
+                    self._material_file = os.path.join(
+                        os.path.dirname(filename),
+                        material_file
+                    )
+                else:
+                    if hasattr(filename, "name"):
+                        self._material_file = os.path.join(
+                            os.path.dirname(filename.name),
+                            material_file
+                        )
+                    else:
+                        pass
             except IndexError:
                 pass
         finally:

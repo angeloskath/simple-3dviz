@@ -8,7 +8,7 @@ from tempfile import gettempdir
 
 import numpy as np
 
-from .. import Mesh, Scene
+from .. import Mesh, Scene, TexturedMesh
 from ..behaviours.keyboard import SnapshotOnKey
 from ..behaviours.misc import LightToCamera
 from ..utils import save_frame
@@ -149,14 +149,20 @@ def main(argv=None):
         "--direct_render",
         help="If provided render to this file and exit"
     )
+    parser.add_argument(
+        "--with_texture",
+        action="store_true",
+        help="Load mesh with texture"
+    )
 
     args = parser.parse_args(argv)
 
+    MeshClass = TexturedMesh if args.with_texture else Mesh
     colors = args.color*len(args.file) if len(args.color) == 1 else args.color
     if args.use_tab20:
         colors = [tab20[i % 20] for i in range(len(args.file))]
     meshes = [
-        Mesh.from_file(f, color=c)
+        MeshClass.from_file(f, color=c)
         for f, c in zip(args.file, colors)
     ]
 
