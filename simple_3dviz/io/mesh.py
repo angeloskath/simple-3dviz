@@ -188,7 +188,7 @@ class ObjMeshReader(MeshReader):
                     list(map(extract_uv, l.strip().split()[1:]))
                     for l in lines if l.startswith("f ")
                 ]))
-                self._uv = uv[faces].reshape(-1, 3)[:, :2]
+                self._uv = uv[faces].reshape(-1, uv.shape[1])[:, :2]
             except IndexError:
                 pass
 

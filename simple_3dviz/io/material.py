@@ -69,6 +69,16 @@ class MaterialReader(object):
             raise NotImplementedError()
         return self._mode
 
+    def __getattribute__(self, key):
+        if key.startswith("optional_"):
+            key = key[9:]
+            try:
+                return getattr(self, key)
+            except NotImplementedError:
+                return None
+        else:
+            return super().__getattribute__(key)
+
 
 class MtlMaterialReader(MaterialReader):
     """Read MTL material files."""
@@ -161,30 +171,45 @@ class MtlMaterialReader(MaterialReader):
                 "2" : "specular",
             }[mode_id]
 
-            # Collect some additional informatation
+            # # Collect some additional informatation
 
-            # Transmission filter of the current material, namely a line
-            # starting with "Tf" followed by 3 floats indicating the r,g,b
-            # components of the atmosphere.
-            Tf = np.array([
-                list(map(float, l.strip().split()[1:]))
-                for l in lines if l.strip().startswith("Tf")
-            ], dtype=np.float32)
+            # # Transmission filter of the current material, namely a line
+            # # starting with "Tf" followed by 3 floats indicating the r,g,b
+            # # components of the atmosphere.
+            # Tf = np.array([
+            #     list(map(float, l.strip().split()[1:]))
+            #     for l in lines if l.strip().startswith("Tf")
+            # ], dtype=np.float32)
 
-            # Collect the dissolve for the current material, namely a line
-            # starting with "d" followed by a float, indicating the amount that
-            # this material dissolves into the background.
-            d = float([
-                float(l.strip().split()[1:][0])
-                for l in lines if l.strip().startswith("d")
-            ][0])
+            # # Collect the dissolve for the current material, namely a line
+            # # starting with "d" followed by a float, indicating the amount that
+            # # this material dissolves into the background.
+            # d = float([
+            #     float(l.strip().split()[1:][0])
+            #     for l in lines if l.strip().startswith("d")
+            # ][0])
 
-            # Collect the optical density (index of refraction), namely a line
-            # starting with "Ns" followed by a float.
-            Ni = float([
-                float(l.strip().split()[1:][0])
-                for l in lines if l.strip().startswith("Ni")
-            ][0])
+            # # Collect the optical density (index of refraction), namely a line
+            # # starting with "Ni" followed by a float.
+            # Ni = float([
+            #     float(l.strip().split()[1:][0])
+            #     for l in lines if l.strip().startswith("Ni")
+            # ][0])
 
         finally:
             _close_file(filename, f)
+
+
+class SimpleTexture(MaterialReader):
+    def __init__(self, filename, ambient=(0.8, 0.8, 0.8), diffuse=(0.2, 0.2, 0.2),
+                 specular=(0.1, 0.1, 0.1), Ns=2., mode="specular"):
+        super().__init__(filename)
+
+        self._ambient = ambient
+        self._diffuse = diffuse
+        self._specular = specular
+        self._Ns = Ns
+        self._mode = mode
+
+    def read(self, filename):
+        self._texture = read_image(filename)

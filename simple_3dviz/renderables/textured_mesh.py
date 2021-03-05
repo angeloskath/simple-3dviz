@@ -1,7 +1,8 @@
+from os import path
 
 import numpy as np
 
-from ..io import read_mesh_file, read_material_file
+from ..io import read_mesh_file, read_material_file, SimpleTexture
 from .mesh import MeshBase
 
 
@@ -30,7 +31,7 @@ class Material(object):
                   height, it contains the local displacement of the normal
                   vectors for implementing bump mapping
     """
-    def __init__(self, ambient=(0., 0, 0), diffuse=(0.5, 0.5, 0.5),
+    def __init__(self, ambient=(0.5, 0.5, 0.5), diffuse=(0.5, 0.5, 0.5),
                  specular=(0.5, 0.5, 0.5), Ns=10., texture=None,
                  bump_map=None, mode="specular"):
         self.ambient = np.asarray(ambient, dtype=np.float32)
@@ -130,10 +131,8 @@ class TexturedMesh(MeshBase):
                     // fix colors based on the textures
                     if (has_texture) {
                         vec4 texColor = texture2D(texture, v_uv);
-                        l_ambient *= (1 - texColor.a);
-                        l_ambient += texColor.a * texColor.rgb;
-                        l_diffuse *= (1 - texColor.a);
-                        l_diffuse += texColor.a * texColor.rgb;
+                        l_ambient = l_ambient * texColor.rgb;
+                        l_diffuse = l_diffuse * texColor.rgb;
                     }
 
                     // fix normal based on the bump map
@@ -150,10 +149,12 @@ class TexturedMesh(MeshBase):
                     f_color.rgb += l_diffuse * clamp(dot(l_norm, L), 0, 1);
 
                     // specular color
-                    vec3 V = normalize(camera_position - v_vert);
-                    vec3 H = normalize(L + V);
-                    f_color.rgb += specular * pow(clamp(dot(l_norm, H), 0, 1), Ns);
-                    f_color.a = 1.0;
+                    if (Ns > 0) {
+                        vec3 V = normalize(camera_position - v_vert);
+                        vec3 H = normalize(L + V);
+                        f_color.rgb += specular * pow(clamp(dot(l_norm, H), -1, 1), Ns);
+                        f_color.a = 1.0;
+                    }
                 }
             """
         )
@@ -278,6 +279,11 @@ class TexturedMesh(MeshBase):
         except NotImplementedError:
             if material_filepath is not None:
                 mtl = read_material_file(material_filepath, ext=material_ext)
+            elif path.exists(path.join(path.dirname(filepath), "texture.png")):
+                mtl = SimpleTexture(
+                    path.join(path.dirname(filepath), "texture.png"),
+                    diffuse=color
+                )
 
         if mtl is not None:
             material = Material(
@@ -286,7 +292,7 @@ class TexturedMesh(MeshBase):
                 specular=mtl.specular,
                 Ns=mtl.Ns,
                 texture=mtl.texture,
-                bump_map=mtl.bump_map
+                bump_map=mtl.optional_bump_map
             )
 
         return cls(vertices, normals, uv, material)
