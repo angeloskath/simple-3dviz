@@ -3,7 +3,7 @@
 from os import path
 
 from .mesh import ObjMeshReader, OffMeshReader, PlyMeshReader, StlMeshReader
-from .material import MtlMaterialReader, SimpleTexture
+from .material import MtlMaterialReader
 
 
 def read_mesh_file(filename, ext=None):

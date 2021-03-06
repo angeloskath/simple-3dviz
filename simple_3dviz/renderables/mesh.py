@@ -83,6 +83,21 @@ class MeshBase(Renderable):
         self._vertices *= s
         self._update_vbo()
 
+    def affine_transform(self, R=np.eye(3), t=np.zeros(3)):
+        """Rotate and translate the vertices and then update the gpu buffer.
+
+        Given the vertices v \in R^{Nx3} this function implements
+
+            v' = v @ R + t
+
+        Arguments
+        ---------
+            R: array (3, 3), the 3x3 rotation matrix
+            t: array (3,), the translation vector
+        """
+        self._vertices = self._vertices.dot(R) + t
+        self._update_vbo()
+
     def to_unit_cube(self):
         """Transform the mesh such that it fits in the 0 centered unit cube."""
         bbox = self.bbox
@@ -104,6 +119,13 @@ class MeshBase(Renderable):
         for k, v in uniforms:
             if k in uniforms_list:
                 self._prog[k].write(v.tobytes())
+
+    @staticmethod
+    def _triangle_normals(triangles):
+        triangles = triangles.reshape(-1, 3, 3)
+        ba = triangles[:, 1] - triangles[:, 0]
+        bc = triangles[:, 2] - triangles[:, 1]
+        return np.cross(ba, bc, axis=-1)
 
     def _update_vbo(self):
         """Update the vertex buffer object because one of the values has
@@ -254,13 +276,6 @@ class Mesh(MeshBase):
         self._vertices -= dims/2 + bbox[0]
         self._vertices /= dims.max()
         self._update_vbo()
-
-    @staticmethod
-    def _triangle_normals(triangles):
-        triangles = triangles.reshape(-1, 3, 3)
-        ba = triangles[:, 1] - triangles[:, 0]
-        bc = triangles[:, 2] - triangles[:, 1]
-        return np.cross(ba, bc, axis=-1)
 
     @classmethod
     def from_file(cls, filepath, color=(0.3, 0.3, 0.3), ext=None):

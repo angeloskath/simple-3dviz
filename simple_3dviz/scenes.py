@@ -66,6 +66,8 @@ class BaseScene(object):
             del self._renderables[renderable]
 
     def clear(self):
+        for r in self._renderables:
+            r.release()
         self._renderables.clear()
 
     @property

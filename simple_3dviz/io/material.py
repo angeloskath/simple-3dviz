@@ -84,6 +84,7 @@ class MtlMaterialReader(MaterialReader):
     """Read MTL material files."""
     def read(self, filename):
         try:
+            f = None
             f = _get_file(filename)
 
             lines = f.readlines()
@@ -197,19 +198,5 @@ class MtlMaterialReader(MaterialReader):
             # ][0])
 
         finally:
-            _close_file(filename, f)
-
-
-class SimpleTexture(MaterialReader):
-    def __init__(self, filename, ambient=(0.8, 0.8, 0.8), diffuse=(0.2, 0.2, 0.2),
-                 specular=(0.1, 0.1, 0.1), Ns=2., mode="specular"):
-        super().__init__(filename)
-
-        self._ambient = ambient
-        self._diffuse = diffuse
-        self._specular = specular
-        self._Ns = Ns
-        self._mode = mode
-
-    def read(self, filename):
-        self._texture = read_image(filename)
+            if f is not None:
+                _close_file(filename, f)

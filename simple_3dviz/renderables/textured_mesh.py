@@ -2,7 +2,8 @@ from os import path
 
 import numpy as np
 
-from ..io import read_mesh_file, read_material_file, SimpleTexture
+from ..io import read_mesh_file, read_material_file
+from ..utils import read_image
 from .mesh import MeshBase
 
 
@@ -31,8 +32,8 @@ class Material(object):
                   height, it contains the local displacement of the normal
                   vectors for implementing bump mapping
     """
-    def __init__(self, ambient=(0.5, 0.5, 0.5), diffuse=(0.5, 0.5, 0.5),
-                 specular=(0.5, 0.5, 0.5), Ns=10., texture=None,
+    def __init__(self, ambient=(0.8, 0.8, 0.8), diffuse=(0.2, 0.2, 0.2),
+                 specular=(0.1, 0.1, 0.1), Ns=2., texture=None,
                  bump_map=None, mode="specular"):
         self.ambient = np.asarray(ambient, dtype=np.float32)
         self.diffuse = np.asarray(diffuse, dtype=np.float32)
@@ -45,6 +46,19 @@ class Material(object):
             self.specular[...] = 0
         elif mode == "diffuse":
             self.specular[...] = 0
+
+    @classmethod
+    def with_texture_image(cls, texture_path, ambient=(0.8, 0.8, 0.8),
+                           diffuse=(0.2, 0.2, 0.2), specular=(0.1, 0.1, 0.1),
+                           Ns=2., mode="specular"):
+        return cls(
+            ambient=ambient,
+            diffuse=diffuse,
+            specular=specular,
+            Ns=Ns,
+            texture=read_image(texture_path),
+            mode=mode
+        )
 
 
 class TexturedMesh(MeshBase):
@@ -146,13 +160,13 @@ class TexturedMesh(MeshBase):
 
                     // diffuse color
                     vec3 L = normalize(light - v_vert);
-                    f_color.rgb += l_diffuse * clamp(dot(l_norm, L), 0, 1);
+                    f_color.rgb += l_diffuse * clamp(dot(normalize(l_norm), L), 0, 1);
 
                     // specular color
                     if (Ns > 0) {
                         vec3 V = normalize(camera_position - v_vert);
                         vec3 H = normalize(L + V);
-                        f_color.rgb += specular * pow(clamp(dot(l_norm, H), -1, 1), Ns);
+                        f_color.rgb += specular * pow(clamp(dot(normalize(l_norm), H), -1, 1), Ns);
                         f_color.a = 1.0;
                     }
                 }
@@ -263,7 +277,7 @@ class TexturedMesh(MeshBase):
         try:
             normals = mesh.normals
         except NotImplementedError:
-            normals = np.repeat(Mesh._triangle_normals(vertices), 3, axis=0)
+            normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
 
         # Set the uv coordinates
         try:
@@ -276,11 +290,11 @@ class TexturedMesh(MeshBase):
         material = Material(diffuse=color)
         try:
             mtl = read_material_file(mesh.material_file)
-        except NotImplementedError:
+        except (NotImplementedError, FileNotFoundError):
             if material_filepath is not None:
                 mtl = read_material_file(material_filepath, ext=material_ext)
             elif path.exists(path.join(path.dirname(filepath), "texture.png")):
-                mtl = SimpleTexture(
+                material = Material.with_texture_image(
                     path.join(path.dirname(filepath), "texture.png"),
                     diffuse=color
                 )
@@ -294,5 +308,14 @@ class TexturedMesh(MeshBase):
                 texture=mtl.texture,
                 bump_map=mtl.optional_bump_map
             )
+
+        return cls(vertices, normals, uv, material)
+
+    @classmethod
+    def from_faces(cls, vertices, uv, faces, material):
+        vertices, uv, faces = map(np.asarray, (vertices, uv, faces))
+        vertices = vertices[faces].reshape(-1, 3)
+        uv = uv[faces].reshape(-1, 2)
+        normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
 
         return cls(vertices, normals, uv, material)
