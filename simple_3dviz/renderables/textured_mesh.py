@@ -32,7 +32,7 @@ class Material(object):
                   height, it contains the local displacement of the normal
                   vectors for implementing bump mapping
     """
-    def __init__(self, ambient=(0.8, 0.8, 0.8), diffuse=(0.2, 0.2, 0.2),
+    def __init__(self, ambient=(0.4, 0.4, 0.4), diffuse=(0.4, 0.4, 0.4),
                  specular=(0.1, 0.1, 0.1), Ns=2., texture=None,
                  bump_map=None, mode="specular"):
         self.ambient = np.asarray(ambient, dtype=np.float32)
@@ -48,8 +48,8 @@ class Material(object):
             self.specular[...] = 0
 
     @classmethod
-    def with_texture_image(cls, texture_path, ambient=(0.8, 0.8, 0.8),
-                           diffuse=(0.2, 0.2, 0.2), specular=(0.1, 0.1, 0.1),
+    def with_texture_image(cls, texture_path, ambient=(0.4, 0.4, 0.4),
+                           diffuse=(0.4, 0.4, 0.4), specular=(0.1, 0.1, 0.1),
                            Ns=2., mode="specular"):
         return cls(
             ambient=ambient,
@@ -294,10 +294,16 @@ class TexturedMesh(MeshBase):
             if material_filepath is not None:
                 mtl = read_material_file(material_filepath, ext=material_ext)
             elif path.exists(path.join(path.dirname(filepath), "texture.png")):
-                material = Material.with_texture_image(
-                    path.join(path.dirname(filepath), "texture.png"),
-                    diffuse=color
-                )
+                try:
+                    material = Material.with_texture_image(
+                        path.join(path.dirname(filepath), "texture.png"),
+                        diffuse=color
+                    )
+                except:
+                    import sys
+                    print(("Error while reading the texture image "
+                           "for {}").format(filepath), file=sys.stderr)
+                    raise
 
         if mtl is not None:
             material = Material(

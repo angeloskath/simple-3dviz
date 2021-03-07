@@ -160,17 +160,21 @@ class MtlMaterialReader(MaterialReader):
                 pass
 
             # Collect the illumination model used for the material, namely a
-            # line starting with "illum" and followed by an ineger, specifying
+            # line starting with "illum" and followed by an integer, specifying
             # the id of the illumination model.
-            mode_id = [
-                l.strip().split()[1:][0]
-                for l in lines if l.strip().startswith("illum")
-            ][0]
-            self._mode = {
-                "0" : "constant",
-                "1" : "diffuse",
-                "2" : "specular",
-            }[mode_id]
+            self._mode = "specular"
+            try:
+                mode_id = [
+                    l.strip().split()[1:][0]
+                    for l in lines if l.strip().startswith("illum")
+                ][0]
+                self._mode = {
+                    "0" : "constant",
+                    "1" : "diffuse",
+                    "2" : "specular",
+                }[mode_id]
+            except IndexError:
+                pass
 
             # # Collect some additional informatation
 
