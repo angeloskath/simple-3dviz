@@ -208,3 +208,50 @@ class Lines(Renderable):
 
         return cls.from_voxel_grid(voxelgrid, colors=colors, bbox=bbox,
                                    width=width)
+
+    @classmethod
+    def axes(cls, origin=(0, 0, 0), size=1.0, colors=None, width=0.01):
+        """Create the three axes to be used as a reference.
+
+        Arguments
+        ---------
+            origin: array-like (3,), the origin to put the axes to
+                    (default: (0, 0, 0))
+            size: float or array-like (3,), the size of the axes lines
+                  (default: 1.)
+            colors: None or array-like (3, 3 or 4), the colors to use for each
+                    of the three axes (default: None)
+            width: float, the width of the lines (default: 0.01)
+        """
+        # Normalize the colors argument
+        colors = colors or [[0.8, 0.2, 0.2], [0.2, 0.8, 0.2], [0.2, 0.2, 0.8]]
+        colors = np.asarray(colors)
+        if len(colors.shape) == 1:
+            colors = colors[None]
+        if len(colors) == 1:
+            colors = np.repeat(colors, 3, axis=0)
+        elif len(colors) != 3:
+            raise ValueError("colors should contain 1 or 3 colors")
+        if colors.shape[1] == 3:
+            colors = np.hstack([colors, np.ones((3, 1))])
+        elif colors.shape[1] != 4:
+            raise ValueError("colors should be either 3 or 4 values")
+        colors = np.repeat(colors, 2, axis=0)
+        assert colors.shape == (6, 4)
+
+        # Normalize the size argument
+        size = np.ones(3) * size
+        assert size.shape == (3,)
+
+        # Normalize the origin argument
+        origin = np.asarray(origin)
+        assert origin.shape == (3,)
+
+        axes = np.array([[0, 0, 0],
+                         [1, 0, 0],
+                         [0, 0, 0],
+                         [0, 1, 0],
+                         [0, 0, 0],
+                         [0, 0, 1.]]) * size  + origin
+
+        return cls(axes, colors, width=width)
