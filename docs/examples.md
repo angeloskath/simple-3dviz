@@ -22,8 +22,10 @@ mesh_viewer --help
 usage: mesh_viewer [-h] [--size SIZE] [--background BACKGROUND]
                    [--camera_position CAMERA_POSITION]
                    [--camera_target CAMERA_TARGET] [--up UP] [--light LIGHT]
-                   [--color COLOR] [--manual] [--save_frame SAVE_FRAME]
-                   file
+                   [--color COLOR] [--use_tab20] [--manual]
+                   [--save_frame SAVE_FRAME] [--direct_render DIRECT_RENDER]
+                   [--with_texture]
+                   file [file ...]
 
 Visualize meshes with simple_3dviz
 
@@ -42,9 +44,13 @@ optional arguments:
   --up UP               The up vector
   --light LIGHT
   --color COLOR         Choose a color for the mesh
+  --use_tab20           Use matplotlib's tab20 color map
   --manual              Auto determine the camera position and target
   --save_frame SAVE_FRAME
                         The location to save the snapshot frame
+  --direct_render DIRECT_RENDER
+                        If provided render to this file and exit
+  --with_texture        Load mesh with texture
 ```
 
 <div style="text-align: center;">

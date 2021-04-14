@@ -84,6 +84,52 @@ or using a set of vertices and normals.
     <img src="../img/load_models_cone.png" alt="Red Cone" />
 </div>
 
+## Creating Textured Meshes
+
+simple-3dviz has limited support for textures as well. To load a mesh with a
+texture/material you can use the `TexturedMesh` class similar to the way you
+would use `Mesh`.
+
+```python
+>>> from simple_3dviz import TexturedMesh
+>>> from simple_3dviz.behaviours.misc import LightToCamera
+>>> from simple_3dviz.window import show
+
+# The model together with its material files is downloaded for free from
+# https://www.turbosquid.com/3d-models/african-elephant-obj-free/1126601
+>>> m = TexturedMesh.from_file("path/to/elefante.obj")
+>>> show(
+...     m,
+...     behaviours=[LightToCamera()],
+...     camera_position=(8, 8, 8),
+...     up_vector=(0, 1, 0)
+... )
+
+# You can also set the material after loading the model
+>>> from simple_3dviz.renderables.textured_mesh import Material
+>>> mtl = Material.with_texture_image(
+...     "path/to/elefantefull.png",
+...     ambient=(0.4, 0.4, 0.4),
+...     diffuse=(0.4, 0.4, 0.4),
+...     specular=(0.1, 0.1, 0.1),
+...     Ns=2
+... )
+>>> m.material = mtl
+>>> show(
+...     m,
+...     behaviours=[LightToCamera()],
+...     camera_position=(8, 8, 8),
+...     up_vector=(0, 1, 0)
+... )
+```
+
+<div style="text-align: center;">
+    <img src="../img/elefante.png"
+         alt="Original Elefante model" style="width:49%"/>
+    <img src="../img/elefante_mtl.png"
+         alt="Elefante model with custom material" style="width:49%"/>
+</div>
+
 ## Creating Voxel Grids
 
 It is possible to create a `Mesh` containing a voxel grid directly from an
@@ -92,7 +138,7 @@ the `Mesh.from_voxel_grid()` method.
 
 ```python
 >>> from simple_3dviz import Mesh
->>> from simple_3dviz.
+>>> from simple_3dviz.window import show
 
 # We create a NxNxN voxel grid with True values if the voxel is inside a heart
 # object and False otherwise. We implement the Taubin's heart surface as
