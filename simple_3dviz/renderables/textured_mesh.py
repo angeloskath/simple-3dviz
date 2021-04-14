@@ -13,7 +13,7 @@ class Material(object):
     The supported materials have the following:
 
     - An ambient color
-    - A diffuse lighting color (similar to `simple_3dviz.renderables.Mesh`)
+    - A diffuse lighting color (similar to `simple_3dviz.renderables.mesh.Mesh`)
     - A specular lighting color
     - A specular exponent for Phong lighting
     - A texture map
@@ -71,7 +71,7 @@ class TexturedMesh(MeshBase):
                   should be given on its own even if vertices are shared.
         normals: array-like, per vertex normal vectors
         uv: array-like, per-vertex uv coordinates inside the texture
-        material: `simple_3dviz.renderables.Material` object
+        material: simple_3dviz.renderables.textured_mesh.Material object
     """
     def __init__(self, vertices, normals, uv, material):
         super(TexturedMesh, self).__init__(vertices, normals)
