@@ -7,8 +7,10 @@ from os import path
 from tempfile import gettempdir
 
 import numpy as np
+from pyrr import Matrix44
 
 from .. import Mesh, Scene, TexturedMesh
+from ..behaviours import SceneInit
 from ..behaviours.keyboard import SnapshotOnKey
 from ..behaviours.misc import LightToCamera
 from ..utils import save_frame
@@ -76,6 +78,23 @@ def f_tuple(n):
         if len(t) != n:
             raise ValueError("Expected a {}-tuple".format(n))
         return t
+    return inner
+
+
+def scene_init(args):
+    def inner(scene):
+        scene.camera_position = args.camera_position
+        scene.camera_target = args.camera_target
+        scene.up_vector = args.up
+        scene.light = args.light or scene.camera_position
+        if args.depth:
+            H, W = args.orthographic_bounds
+            scene.camera_matrix = Matrix44.orthogonal_projection(
+                left=-W/2, right=W/2,
+                bottom=H/2, top=-H/2,
+                near=args.orthographic_near,
+                far=args.orthographic_far
+            )
     return inner
 
 
@@ -154,6 +173,29 @@ def main(argv=None):
         action="store_true",
         help="Load mesh with texture"
     )
+    parser.add_argument(
+        "--depth",
+        action="store_true",
+        help="Use an orthographic camera and render the depth of the scene"
+    )
+    parser.add_argument(
+        "--orthographic_bounds",
+        type=f_tuple(2),
+        help=("When an orthographic projection is used, these define the "
+              "width and height of the image plane in the world.")
+    )
+    parser.add_argument(
+        "--orthographic_near",
+        type=float,
+        default=0.1,
+        help="Set nearest visible point to the camera"
+    )
+    parser.add_argument(
+        "--orthographic_far",
+        type=float,
+        default=10,
+        help="Set farthest visible point to the camera"
+    )
 
     args = parser.parse_args(argv)
 
@@ -166,6 +208,8 @@ def main(argv=None):
         for f, c in zip(args.file, colors)
     ]
 
+    # If manual is not set then move the camera far enough so that it can see
+    # the whole scene
     if args.auto:
         bbox_min = reduce(
             np.minimum,
@@ -181,6 +225,9 @@ def main(argv=None):
         center = (bbox[1]-bbox[0])/2 + bbox[0]
         args.camera_target = center
         args.camera_position = center + (bbox[1]-center)*2
+        # In case the camera is too far, then scale the objects so that the
+        # camera distance is not very large.
+        # NOTE: This probably only works with a single model
         D = np.sqrt(np.sum((args.camera_position - args.camera_target)**2))
         if D > 100:
             s = 100. / D
@@ -188,6 +235,29 @@ def main(argv=None):
             args.camera_position *= s
             for m in meshes:
                 m.scale(s)
+
+    # Fill the orthographic_bounds if they are not given by computing the scene
+    # bounding box and setting the camera plane to be a square with a side
+    # equal to the diagonal of the bbox of the scene.
+    if args.orthographic_bounds is None:
+        bbox_min = reduce(
+            np.minimum,
+            (m.bbox[0] for m in meshes),
+            meshes[0].bbox[0]
+        )
+        bbox_max = reduce(
+            np.maximum,
+            (m.bbox[1] for m in meshes),
+            meshes[0].bbox[1]
+        )
+        diagonal = np.sqrt(((bbox_max - bbox_min)**2).sum())
+        args.orthographic_bounds = (diagonal, diagonal)
+
+    # Set the meshes to render in depth mode if args.depth is set
+    if args.depth:
+        for m in meshes:
+            if hasattr(m, "mode"):
+                m.mode = "depth"
 
     behaviours = [
         SnapshotOnKey(path=args.save_frame, keys={"<ctrl>", "S"}),
@@ -200,13 +270,7 @@ def main(argv=None):
         for m in meshes:
             m.sort_triangles(args.camera_position)
             scene.add(m)
-        scene.camera_position = args.camera_position
-        scene.camera_target = args.camera_target
-        scene.up_vector = args.up
-        if args.light is None:
-            scene.light = args.camera_position
-        else:
-            scene.light = args.light
+        scene_init(args)(scene)
         scene.render()
         save_frame(args.direct_render, scene.frame)
     else:
@@ -217,5 +281,5 @@ def main(argv=None):
             camera_target=args.camera_target,
             up_vector=args.up,
             light=args.light,
-            behaviours=behaviours
+            behaviours=[SceneInit(scene_init(args))] + behaviours
         )

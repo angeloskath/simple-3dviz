@@ -147,8 +147,11 @@ class Mesh(MeshBase):
         offset: A translation vector for all the vertices. It can be changed
                 after construction to animate the object together with the
                 `model_matrix` property.
+        mode: {"shading", "flat", "depth"} A string that defines the rendering
+              mode for this mesh. (default: shading)
     """
-    def __init__(self, vertices, normals, colors, offset=[0, 0, 0.]):
+    def __init__(self, vertices, normals, colors, offset=[0, 0, 0.],
+                 mode="shading"):
         super(Mesh, self).__init__(vertices, normals, offset)
 
         self._colors = np.asarray(colors)
@@ -160,6 +163,8 @@ class Mesh(MeshBase):
             self._colors = self._colors[np.newaxis].repeat(N, axis=0)
         elif self._colors.shape[1] == 3:
             self._colors = np.hstack([self._colors, np.ones((N, 1))])
+
+        self._mode = mode
 
     def init(self, ctx):
         self._prog = ctx.program(
@@ -199,6 +204,7 @@ class Mesh(MeshBase):
                 #version 330
 
                 uniform vec3 light;
+                uniform int mode;
                 in vec3 v_vert;
                 in vec3 v_norm;
                 in vec4 v_color;
@@ -210,7 +216,21 @@ class Mesh(MeshBase):
                     lum = acos(lum) / 3.14159265;
                     lum = clamp(lum, 0.0, 1.0);
 
-                    f_color = vec4(v_color.xyz * lum, v_color.w);
+                    // shading
+                    if (mode == 0) {
+                        f_color = vec4(v_color.xyz * lum, v_color.w);
+                    }
+
+                    // flat color
+                    else if (mode == 1) {
+                        f_color = v_color;
+                    }
+
+                    // depth with orthographic projection
+                    else {
+                        float depth = 1-gl_FragCoord.z;
+                        f_color = vec4(depth, depth, depth, 1);
+                    }
                 }
             """
         )
@@ -226,6 +246,7 @@ class Mesh(MeshBase):
         )
         self.model_matrix = self._model_matrix
         self.offset = self._offset
+        self.mode = self._mode
 
     def _get_uniforms_list(self):
         """Return the used uniforms to fetch from the scene."""
@@ -238,6 +259,21 @@ class Mesh(MeshBase):
             self._vbo.write(np.hstack([
                 self._vertices, self._normals, self._colors
             ]).astype(np.float32).tobytes())
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @mode.setter
+    def mode(self, new_mode):
+        self._mode = new_mode
+        modes = dict(
+            shading=0,
+            flat=1,
+            depth=2
+        )
+        if self._prog:
+            self._prog["mode"] = modes[self._mode]
 
     def sort_triangles(self, point):
         """Sort the triangles such that the first is furthest from `point` and
