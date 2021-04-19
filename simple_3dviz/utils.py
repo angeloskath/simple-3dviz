@@ -112,3 +112,23 @@ def render(renderables, behaviours, n_frames, size=(512, 512),
                 break
         for i in reversed(remove):
             behaviours.pop(i)
+
+
+def normalize_colors(c, N):
+    """Normalize `c` so that it represents N 4-dimensional color values."""
+    c = np.asarray(c)
+    if len(c.shape) == 1:
+        if c.shape[0] == 3:
+            c = np.array(c.tolist() + [1.0])
+        c = c[np.newaxis].repeat(N, axis=0)
+    elif len(c.shape) == 2:
+        if len(c) != N:
+            raise ValueError(("c cannot represent the requested number "
+                              "of colors"))
+        if c.shape[1] == 3:
+            c = np.hstack([c, np.ones((N, 1))])
+
+    if c.shape != (N, 4):
+        raise ValueError(("c cannot represent the requested number of colors"))
+
+    return c.astype(np.float32)

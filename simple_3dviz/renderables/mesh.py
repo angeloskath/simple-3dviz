@@ -1,11 +1,11 @@
 
 import numpy as np
+from pyrr import Matrix44, matrix44
 
 from ..io import read_mesh_file
 from ..io.voxels import read_binvox
+from ..utils import normalize_colors
 from .base import Renderable
-
-from pyrr import Matrix44, matrix44
 
 
 class MeshBase(Renderable):
@@ -20,6 +20,13 @@ class MeshBase(Renderable):
         self._prog = None
         self._vbo = None
         self._vao = None
+
+    @property
+    def vertices(self):
+        """Return all the vertices of this mesh. The vertices in groups of 3
+        form triangles and several vertices occur multiple times as they are
+        shared by several triangles."""
+        return self._vertices.clone()
 
     @property
     def bbox(self):
@@ -98,6 +105,11 @@ class MeshBase(Renderable):
         self._vertices = self._vertices.dot(R) + t
         self._update_vbo()
 
+    def translate(self, t):
+        """Translate all the vertices with a vector t."""
+        self._vertices += t
+        self._update_vbo()
+
     def to_unit_cube(self):
         """Transform the mesh such that it fits in the 0 centered unit cube."""
         bbox = self.bbox
@@ -110,6 +122,9 @@ class MeshBase(Renderable):
         self._prog.release()
         self._vbo.release()
         self._vao.release()
+        self._prog = None
+        self._vbo = None
+        self._vao = None
 
     def render(self):
         self._vao.render()
@@ -248,6 +263,17 @@ class Mesh(MeshBase):
         self.offset = self._offset
         self.mode = self._mode
 
+    @property
+    def colors(self):
+        """Return the color per vertex."""
+        return self._colors.clone()
+
+    @colors.setter
+    def colors(self, c):
+        c = normalize_colors(c, len(self._vertices))
+        self._colors = c
+        self._update_vbo()
+
     def _get_uniforms_list(self):
         """Return the used uniforms to fetch from the scene."""
         return ["light", "mvp"]
@@ -293,24 +319,6 @@ class Mesh(MeshBase):
         self._vertices = vertices[idxs].reshape(-1, 3)
         self._normals = normals[idxs].reshape(-1, 3)
         self._colors = colors[idxs].reshape(-1, 4)
-        self._update_vbo()
-
-    def scale(self, s):
-        """Multiply all the vertices with a number s."""
-        self._vertices *= s
-        self._update_vbo()
-
-    def translate(self, t):
-        """Translate all the vertices with a vector t."""
-        self._vertices += t
-        self._update_vbo()
-
-    def to_unit_cube(self):
-        """Transform the mesh such that it fits in the 0 centered unit cube."""
-        bbox = self.bbox
-        dims = bbox[1] - bbox[0]
-        self._vertices -= dims/2 + bbox[0]
-        self._vertices /= dims.max()
         self._update_vbo()
 
     @classmethod
