@@ -17,7 +17,7 @@ try:
         image_data[0], image_data[2] = image_data[2], image_data[0]
         frame = np.stack(image_data, axis=-1)
 
-        cv2.imwrite(path, frame[::-1])
+        cv2.imwrite(path, frame)
 
     def read_image(path):
         img = cv2.imread(path, -1)
@@ -28,14 +28,14 @@ try:
         # swap channels from bgr to rgb
         image_data = [img[:, :, i] for i in range(channels)]
         image_data[0], image_data[2] = image_data[2], image_data[0]
-        return np.stack(image_data, axis=-1)[::-1]
+        return np.stack(image_data, axis=-1)
 
 except ImportError:
     from PIL import Image
     import numpy as np
 
     def save_frame(path, frame):
-        Image.fromarray(frame[::-1]).save(path)
+        Image.fromarray(frame).save(path)
 
     def read_image(path):
         return np.asarray(Image.open(path))

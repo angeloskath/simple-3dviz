@@ -47,6 +47,14 @@ class Material(object):
         elif mode == "diffuse":
             self.specular[...] = 0
 
+    @property
+    def texture_flipped(self):
+        return self.texture[::-1]
+
+    @property
+    def bump_map_flipped(self):
+        return self._bump_map[::-1]
+
     @classmethod
     def with_texture_image(cls, texture_path, ambient=(0.4, 0.4, 0.4),
                            diffuse=(0.4, 0.4, 0.4), specular=(0.1, 0.1, 0.1),
@@ -229,7 +237,7 @@ class TexturedMesh(MeshBase):
             self._texture = self._prog.ctx.texture(
                 self._material.texture.shape[:2][::-1],
                 self._material.texture.shape[2],
-                data=self._material.texture.tobytes()
+                data=self._material.texture_flipped.tobytes()
             )
         else:
             self._prog["has_texture"] = False
@@ -240,7 +248,7 @@ class TexturedMesh(MeshBase):
             self._bump_map = self._prog.ctx.texture(
                 self._material.bump_map.shape[:2][::-1],
                 self._material.bump_map.shape[2],
-                data=self._material.bump_map.tobytes()
+                data=self._material.bump_map_flipped.tobytes()
             )
         else:
             self._prog["has_bump_map"] = False

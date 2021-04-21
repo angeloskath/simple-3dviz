@@ -64,7 +64,7 @@ class Window(BaseWindow):
             return np.frombuffer(
                 framebuffer.read(components=4),
                 dtype=np.uint8
-            ).reshape(*(framebuffer.size + (4,)))
+            ).reshape(*(framebuffer.size + (4,)))[::-1]
 
         def _on_close(self, event):
             self._ticker.Stop()

@@ -93,10 +93,12 @@ class BaseScene(object):
     @property
     def frame(self):
         if self._framebuffer is not None:
+            # NOTE: We flip the y axis in order to have (0, 0) to be the bottom
+            # left corner.
             return np.frombuffer(
                 self._framebuffer.read(components=4),
                 dtype=np.uint8
-            ).reshape(*(self._framebuffer.size + (4,)))
+            ).reshape(*(self._framebuffer.size + (4,)))[::-1]
         else:
             raise RuntimeError(("This scene is rendering on a framebuffer "
                                 "managed by someone else (gui perhaphs). "

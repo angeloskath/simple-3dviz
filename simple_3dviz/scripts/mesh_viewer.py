@@ -9,7 +9,7 @@ from tempfile import gettempdir
 import numpy as np
 from pyrr import Matrix44
 
-from .. import Mesh, Scene, TexturedMesh
+from .. import Mesh, Lines, Scene, TexturedMesh
 from ..behaviours import SceneInit
 from ..behaviours.keyboard import SnapshotOnKey
 from ..behaviours.misc import LightToCamera
@@ -95,6 +95,8 @@ def scene_init(args):
                 near=args.orthographic_near,
                 far=args.orthographic_far
             )
+        if args.show_axes:
+            scene.add(Lines.axes())
     return inner
 
 
@@ -195,6 +197,11 @@ def main(argv=None):
         type=float,
         default=10,
         help="Set farthest visible point to the camera"
+    )
+    parser.add_argument(
+        "--show_axes",
+        action="store_true",
+        help="Draw the axes at (0, 0, 0)"
     )
 
     args = parser.parse_args(argv)
