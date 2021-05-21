@@ -60,7 +60,7 @@ class SaveGif(Behaviour):
             return
 
         frame = params.frame()
-        self._images.append(Image.fromarray(frame[::-1]))
+        self._images.append(Image.fromarray(frame))
 
         if params.last_call:
             self._images[0].save(
