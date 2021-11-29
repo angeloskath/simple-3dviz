@@ -318,7 +318,7 @@ class TexturedMesh(MeshBase):
                 ambient=mtl.ambient,
                 diffuse=mtl.diffuse,
                 specular=mtl.specular,
-                Ns=mtl.Ns,
+                Ns= (mtl.optional_Ns if mtl.optional_Ns is not None else 2),
                 texture=mtl.texture,
                 bump_map=mtl.optional_bump_map
             )
