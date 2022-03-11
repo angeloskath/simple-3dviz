@@ -21,12 +21,26 @@ class MeshBase(Renderable):
         self._vbo = None
         self._vao = None
 
+    def to_points_and_faces(self):
+        N = 0
+        index = {}
+        faces = []
+        for x in self._vertices.reshape(-1, 3):
+            x = tuple(x)
+            if x not in index:
+                index[x] = N
+                N += 1
+            faces.append(index[x])
+        points = [p for p, i in sorted(index.items(), key=lambda x: x[1])]
+
+        return np.array(points), np.array(faces).reshape(-1, 3)
+
     @property
     def vertices(self):
         """Return all the vertices of this mesh. The vertices in groups of 3
         form triangles and several vertices occur multiple times as they are
         shared by several triangles."""
-        return self._vertices.clone()
+        return np.copy(self._vertices)
 
     @property
     def bbox(self):
@@ -397,15 +411,15 @@ class Mesh(MeshBase):
         return cls(vertices, normals, colors)
 
     @classmethod
-    def from_faces(cls, vertices, faces, colors):
+    def from_faces(cls, vertices, faces, colors=(0.3,0.3,0.3)):
         vertices, faces, colors = list(map(
             np.asarray,
             [vertices, faces, colors]
         ))
+        colors = normalize_colors(colors, len(vertices))
         vertices = vertices[faces].reshape(-1, 3)
         normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
-        if len(colors.shape) != 1:
-            colors = colors[faces].reshape(-1, 3)
+        colors = colors[faces].reshape(-1, 4)
 
         return cls(vertices, normals, colors)
 
