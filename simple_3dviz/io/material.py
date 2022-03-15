@@ -98,22 +98,25 @@ class MtlMaterialReader(MaterialReader):
             self._ambient = np.array([
                 list(map(float, l.strip().split()[1:]))
                 for l in lines if l.strip().startswith("Ka")
-            ], dtype=np.float32)
+            ][0], dtype=np.float32)
             self._diffuse = np.array([
                 list(map(float, l.strip().split()[1:]))
                 for l in lines if l.strip().startswith("Kd")
-            ], dtype=np.float32)
+            ][0], dtype=np.float32)
             self._specular = np.array([
                 list(map(float, l.strip().split()[1:]))
                 for l in lines if l.strip().startswith("Ks")
-            ], dtype=np.float32)
+            ][0], dtype=np.float32)
 
             # Collect the specular exponent, namely a line starting with "Ns"
             # followed by a float.
-            self._Ns = float([
-                float(l.strip().split()[1:][0])
-                for l in lines if l.strip().startswith("Ns")
-            ][0])
+            try:
+                self._Ns = float([
+                    float(l.strip().split()[1:][0])
+                    for l in lines if l.strip().startswith("Ns")
+                ][0])
+            except IndexError:
+                pass
 
             # Collect the information regarding texture maps and the bump map.
             try:
