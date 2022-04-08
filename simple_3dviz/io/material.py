@@ -86,7 +86,6 @@ class MtlMaterialReader(MaterialReader):
         try:
             f = None
             f = _get_file(filename)
-
             lines = f.readlines()
 
             # Collect the material color information, namely lines starting
@@ -110,10 +109,15 @@ class MtlMaterialReader(MaterialReader):
 
             # Collect the specular exponent, namely a line starting with "Ns"
             # followed by a float.
-            self._Ns = float([
+            Ns = [
                 float(l.strip().split()[1:][0])
                 for l in lines if l.strip().startswith("Ns")
-            ][0])
+            ]
+            # In case no Ns is specified set Ns to 10
+            if len(Ns) == 0:
+                self._Ns = 10.0
+            else:
+                self._Ns = Ns[0]
 
             # Collect the information regarding texture maps and the bump map.
             try:

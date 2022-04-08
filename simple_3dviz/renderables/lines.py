@@ -12,8 +12,8 @@ class Lines(Renderable):
     Arguments:
     ----------
         points: array-like, the points that compose the line segments.
-        colors: array-like, per line-segment color as (r,g,b, a)
-        with: flot indicating the width of the line
+        colors: array-like, per line-segment color as (r,g,b,a)
+        width: float indicating the width of the line
     """
     def __init__(self, points, colors=(0.3, 0.3, 0.3, 1.0), width=0.4):
         self._points = np.asarray(points)
