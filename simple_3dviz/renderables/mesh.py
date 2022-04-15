@@ -424,7 +424,7 @@ class Mesh(MeshBase):
         return cls(vertices, normals, colors)
 
     @classmethod
-    def from_boxes(cls, centers, sizes, colors):
+    def from_boxes(cls, centers, sizes, colors=(0.3,0.3,0.3)):
         """Create boxes.
 
         Arguments
@@ -536,7 +536,7 @@ class Mesh(MeshBase):
 
         Arguments
         ---------
-            voxels: Array of 3D values, with truthy values indicating which
+            voxels: Array of 3D values, with true values indicating which
                     voxels to fill
             colors: The colors of the voxels. If colors is a vector then
                     it is the same for all voxels. If it is a 4 dimensional
