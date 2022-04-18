@@ -12,14 +12,8 @@ class MaterialReader(object):
     """MaterialReader defines the common interface for reading material files.
     """
     def __init__(self, filename=None):
-        self._name = None
-        self._ambient = None
-        self._diffuse = None
-        self._specular = None
-        self._Ns = None
-        self._texture = None
-        self._bump_map = None
-        self._mode = None
+        self._materials = {}
+        self._current = None
 
         if filename is not None:
             self.read(filename)
@@ -27,183 +21,142 @@ class MaterialReader(object):
     def read(self, filename):
         raise NotImplementedError()
 
+
+    def set_material(self, name):
+        self._current = name
+
+    @property
+    def material_names(self):
+        return sorted(list(self._materials.keys()))
+
     @property
     def ambient(self):
-        if self._ambient is None:
-            raise NotImplementedError()
-        return self._ambient
+        return self._materials[self._current]["ambient"]
 
     @property
     def diffuse(self):
-        if self._diffuse is None:
-            raise NotImplementedError()
-        return self._diffuse
+        return self._materials[self._current]["diffuse"]
 
     @property
     def specular(self):
-        if self._specular is None:
-            raise NotImplementedError()
-        return self._specular
+        return self._materials[self._current]["specular"]
 
     @property
     def Ns(self):
-        if self._Ns is None:
-            raise NotImplementedError()
-        return self._Ns
+        return self._materials[self._current]["Ns"]
 
     @property
     def texture(self):
-        if self._texture is None:
-            raise NotImplementedError()
-        return self._texture
+        return self._materials[self._current]["texture"]
 
     @property
     def bump_map(self):
-        if self._bump_map is None:
-            raise NotImplementedError()
-        return self._bump_map
+        return self._materials[self._current]["bump"]
 
     @property
     def mode(self):
-        if self._mode is None:
-            raise NotImplementedError()
-        return self._mode
-
-    def __getattribute__(self, key):
-        if key.startswith("optional_"):
-            key = key[9:]
-            try:
-                return getattr(self, key)
-            except NotImplementedError:
-                return None
-        else:
-            return super().__getattribute__(key)
+        return self._materials[self._current]["mode"]
 
 
 class MtlMaterialReader(MaterialReader):
     """Read MTL material files."""
+    def _read_texture(self, filename, texture_path):
+        if isinstance(filename, str):
+            return read_image(os.path.join(
+                os.path.dirname(filename),
+                texture_path
+            ))
+        else:
+            if hasattr(filename, "name"):
+                return read_image(os.path.join(
+                    os.path.dirname(filename.name),
+                    texture_path
+                ))
+            else:
+                return None
+
     def read(self, filename):
         try:
             f = None
             f = _get_file(filename)
             lines = f.readlines()
 
-            # Collect the material color information, namely lines starting
-            # with "Ka" followed by 3 floats indicating the r,g,b components
-            # for the ambient reflectivity, "Kd" followed by 3 floats
-            # indicating the r,g,b components for the diffuse reflectivity and
-            # "Ks" followed by 3 floats indicating the r,g,b components for the
-            # specular reflectivity.
-            self._ambient = np.array([
-                list(map(float, l.strip().split()[1:]))
-                for l in lines if l.strip().startswith("Ka")
-            ], dtype=np.float32)
-            self._diffuse = np.array([
-                list(map(float, l.strip().split()[1:]))
-                for l in lines if l.strip().startswith("Kd")
-            ], dtype=np.float32)
-            self._specular = np.array([
-                list(map(float, l.strip().split()[1:]))
-                for l in lines if l.strip().startswith("Ks")
-            ], dtype=np.float32)
+            materials = {}
+            material = None
+            for l in lines:
+                l = l.strip()
 
-            # Collect the specular exponent, namely a line starting with "Ns"
-            # followed by a float.
-            Ns = [
-                float(l.strip().split()[1:][0])
-                for l in lines if l.strip().startswith("Ns")
-            ]
-            # In case no Ns is specified set Ns to 10
-            if len(Ns) == 0:
-                self._Ns = 10.0
-            else:
-                self._Ns = Ns[0]
+                # Parse the name of the new mtl and add the previous to the
+                # material list
+                if l.startswith("newmtl"):
+                    if material is not None:
+                        materials[material["name"]] = material
+                    material = {
+                        "name": l.split()[1],
+                        "ambient": np.array([1., 1, 1]),
+                        "diffuse": np.array([1., 1, 1]),
+                        "specular": np.array([0., 0, 0]),
+                        "mode": "specular",
+                        "Ns": 10.0,
+                        "bump": None,
+                        "texture": None
+                    }
 
-            # Collect the information regarding texture maps and the bump map.
-            try:
-                texture_file = [
-                    l.strip().split()[1:][0]
-                    for l in lines if l.strip().startswith("map_Kd")
-                ][0]
+                # Collect the material color information, namely lines starting
+                # with "Ka" followed by 3 floats indicating the r,g,b
+                # components for the ambient reflectivity, "Kd" followed by 3
+                # floats indicating the r,g,b components for the diffuse
+                # reflectivity and "Ks" followed by 3 floats indicating the
+                # r,g,b components for the specular reflectivity.
+                elif l.startswith("Ka"):
+                    material["ambient"] = np.array(
+                        list(map(float, l.split()[1:]))
+                    )
 
-                if isinstance(filename, str):
-                    self._texture = read_image(os.path.join(
-                        os.path.dirname(filename),
-                        texture_file
-                    ))
-                else:
-                    if hasattr(filename, "name"):
-                        self._texture = read_image(os.path.join(
-                            os.path.dirname(filename.name),
-                            texture_file
-                        ))
-                    else:
-                        pass
-            except IndexError:
-                pass
+                elif l.startswith("Kd"):
+                    material["diffuse"] = np.array(
+                        list(map(float, l.split()[1:]))
+                    )
 
-            try:
-                bump_map_file = [
-                    l.strip().split()[1:][0]
-                    for l in lines if l.strip().startswith("bump")
-                ][0]
-                if isinstance(filename, str):
-                    self._bump_map = read_image(os.path.join(
-                        os.path.dirname(filename),
-                        bump_map_file
-                    ))
-                else:
-                    if hasattr(filename, "name"):
-                        self._bump_map = read_image(os.path.join(
-                            os.path.dirname(filename.name),
-                            bump_map_file
-                        ))
-                    else:
-                        pass
-            except IndexError:
-                pass
+                elif l.startswith("Ks"):
+                    material["specular"] = np.array(
+                        list(map(float, l.split()[1:]))
+                    )
 
-            # Collect the illumination model used for the material, namely a
-            # line starting with "illum" and followed by an integer, specifying
-            # the id of the illumination model.
-            self._mode = "specular"
-            try:
-                mode_id = [
-                    l.strip().split()[1:][0]
-                    for l in lines if l.strip().startswith("illum")
-                ][0]
-                self._mode = {
-                    "0" : "constant",
-                    "1" : "diffuse",
-                    "2" : "specular",
-                }[mode_id]
-            except IndexError:
-                pass
+                # Collect the specular exponent, namely a line starting with
+                # "Ns" followed by a float.
+                elif l.startswith("Ns"):
+                    material["Ns"] = float(l.split()[1])
 
-            # # Collect some additional informatation
+                # Read the diffuse texture image
+                elif l.startswith("map_Kd"):
+                    material["texture"] = self._read_texture(
+                        filename,
+                        l.split()[1]
+                    )
 
-            # # Transmission filter of the current material, namely a line
-            # # starting with "Tf" followed by 3 floats indicating the r,g,b
-            # # components of the atmosphere.
-            # Tf = np.array([
-            #     list(map(float, l.strip().split()[1:]))
-            #     for l in lines if l.strip().startswith("Tf")
-            # ], dtype=np.float32)
+                # Read the bump map
+                elif l.startswith("bump"):
+                    material["bump"] = self._read_texture(
+                        filename,
+                        l.split()[1]
+                    )
 
-            # # Collect the dissolve for the current material, namely a line
-            # # starting with "d" followed by a float, indicating the amount that
-            # # this material dissolves into the background.
-            # d = float([
-            #     float(l.strip().split()[1:][0])
-            #     for l in lines if l.strip().startswith("d")
-            # ][0])
+                # Collect the illumination model used for the material, namely
+                # a line starting with "illum" and followed by an integer,
+                # specifying the id of the illumination model.
+                elif l.startswith("illum"):
+                    material["mode"] = {
+                        "0" : "constant",
+                        "1" : "diffuse",
+                        "2" : "specular"
+                    }[l.split()[1]]
 
-            # # Collect the optical density (index of refraction), namely a line
-            # # starting with "Ni" followed by a float.
-            # Ni = float([
-            #     float(l.strip().split()[1:][0])
-            #     for l in lines if l.strip().startswith("Ni")
-            # ][0])
+            if material is not None:
+                materials[material["name"]] = material
+                self._current = material["name"]
+
+            self._materials = materials
 
         finally:
             if f is not None:

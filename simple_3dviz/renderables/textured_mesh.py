@@ -53,7 +53,7 @@ class Material(object):
 
     @property
     def bump_map_flipped(self):
-        return self._bump_map[::-1]
+        return self.bump_map[::-1]
 
     @classmethod
     def with_texture_image(cls, texture_path, ambient=(0.4, 0.4, 0.4),
@@ -200,8 +200,10 @@ class TexturedMesh(MeshBase):
         super(TexturedMesh, self).release()
         if self._texture is not None:
             self._texture.release()
+            self._texture = None
         if self._bump_map is not None:
             self._bump_map.release()
+            self._bump_map = None
 
     def _get_uniforms_list(self):
         """Return the used uniforms to fetch from the scene."""
@@ -320,7 +322,7 @@ class TexturedMesh(MeshBase):
                 specular=mtl.specular,
                 Ns=mtl.Ns,
                 texture=mtl.texture,
-                bump_map=mtl.optional_bump_map
+                bump_map=mtl.bump_map
             )
 
         return cls(vertices, normals, uv, material)
