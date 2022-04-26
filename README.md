@@ -59,6 +59,9 @@ from simple_3dviz.utils import render
 # giving the vertices and the normals of the mesh you want to render
 m = Mesh.from_file("models/baby_yoda.stl")
 
+# You can easily extract the mesh vertices and faces
+vertices, faces = m.to_points_and_faces()
+
 # Preview the mesh in an OpenGL window if you installed wxpython with pip
 # Note that you can specify the size (size) and the background color
 # (background) of the rendered window as well as the position of the camera in
@@ -210,13 +213,17 @@ show(
 )
 
 # To visualize a pointloud we can simply use the Spherecloud object
-from simple_3dviz import Spherecloud
+# from simple_3dviz import Spherecloud
 # We start by generating points uniformly distributed in the unit cube
 x = np.linspace(-0.7, 0.7, num=10)
 centers = np.array(np.meshgrid(x, x, x)).reshape(3, -1).T
 spheres_colors = np.array([[1, 1, 0, 1],
                    [0, 1, 1, 1]])[np.random.randint(0, 2, size=centers.shape[0])]
 spheres_sizes = np.ones(centers.shape[0])*0.02
+
+# simple-3dviz also supports visualizing meshes with texture. You can simply
+# load a mesh with texture using our TexturedMesh class
+m = TexturedMesh.from_file("models/cat_1/12222_Cat_v1_l3.obj")
 ```
 
 ## Keyboard and Mouse Controls for the Scene Viewer
