@@ -176,11 +176,12 @@ class Mesh(MeshBase):
         offset: A translation vector for all the vertices. It can be changed
                 after construction to animate the object together with the
                 `model_matrix` property.
-        mode: {"shading", "flat", "depth"} A string that defines the rendering
-              mode for this mesh. (default: shading)
+        mode: {"shading", "flat", "depth", "orthographic_depth"} A string that
+              defines the rendering mode for this mesh. (default: shading)
+        max_depth: The maximum depth map value when rendering depth maps
     """
     def __init__(self, vertices, normals, colors, offset=[0, 0, 0.],
-                 mode="shading"):
+                 mode="shading", max_depth=3.0):
         super(Mesh, self).__init__(vertices, normals, offset)
 
         self._colors = np.asarray(colors)
@@ -194,6 +195,7 @@ class Mesh(MeshBase):
             self._colors = np.hstack([self._colors, np.ones((N, 1))])
 
         self._mode = mode
+        self._max_depth = max_depth
 
     def init(self, ctx):
         self._prog = ctx.program(
@@ -234,6 +236,8 @@ class Mesh(MeshBase):
 
                 uniform vec3 light;
                 uniform int mode;
+                uniform float max_depth;
+                uniform vec3 camera_position;
                 in vec3 v_vert;
                 in vec3 v_norm;
                 in vec4 v_color;
@@ -253,6 +257,12 @@ class Mesh(MeshBase):
                     // flat color
                     else if (mode == 1) {
                         f_color = v_color;
+                    }
+
+                    else if (mode == 2) {
+                        float depth = distance(camera_position, v_vert) / max_depth;
+                        depth = 1.0 - depth;
+                        f_color = vec4(depth, depth, depth, 1);
                     }
 
                     // depth with orthographic projection
@@ -276,6 +286,7 @@ class Mesh(MeshBase):
         self.model_matrix = self._model_matrix
         self.offset = self._offset
         self.mode = self._mode
+        self.max_depth = self._max_depth
 
     @property
     def colors(self):
@@ -290,7 +301,7 @@ class Mesh(MeshBase):
 
     def _get_uniforms_list(self):
         """Return the used uniforms to fetch from the scene."""
-        return ["light", "mvp"]
+        return ["light", "mvp", "camera_position"]
 
     def _update_vbo(self):
         """Write in the vertex buffer object the vertices, normals and
@@ -310,10 +321,21 @@ class Mesh(MeshBase):
         modes = dict(
             shading=0,
             flat=1,
-            depth=2
+            depth=2,
+            orthographic_depth=3
         )
         if self._prog:
             self._prog["mode"] = modes[self._mode]
+
+    @property
+    def max_depth(self):
+        return self._max_depth
+
+    @max_depth.setter
+    def max_depth(self, new_max_depth):
+        self._max_depth = new_max_depth
+        if self._prog:
+            self._prog["max_depth"] = self._max_depth
 
     def sort_triangles(self, point):
         """Sort the triangles such that the first is furthest from `point` and
