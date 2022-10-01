@@ -379,4 +379,5 @@ class TexturedMesh(MeshBase):
             uv = params["uv"]
 
         material = params["material"]
+
         return cls(vertices, normals, uv, material)

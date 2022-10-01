@@ -4,7 +4,7 @@ import numpy as np
 import os
 from plyfile import PlyData
 
-from ._utils import get_file, close_file
+from .utils import get_file, close_file
 
 
 class MeshReader(object):

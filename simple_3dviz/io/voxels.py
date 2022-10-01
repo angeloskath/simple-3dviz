@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from ._utils import get_file, close_file
+from .utils import get_file, close_file
 
 
 def read_binvox(filename):

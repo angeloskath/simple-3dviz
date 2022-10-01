@@ -4,7 +4,7 @@ texture maps."""
 import numpy as np
 import os
 
-from .utils import _get_file, _close_file
+from .utils import get_file, close_file
 from ..utils import read_image
 
 
@@ -78,7 +78,7 @@ class MtlMaterialReader(MaterialReader):
     def read(self, filename):
         try:
             f = None
-            f = _get_file(filename)
+            f = get_file(filename)
             lines = f.readlines()
 
             materials = {}
@@ -160,4 +160,4 @@ class MtlMaterialReader(MaterialReader):
 
         finally:
             if f is not None:
-                _close_file(filename, f)
+                close_file(filename, f)
