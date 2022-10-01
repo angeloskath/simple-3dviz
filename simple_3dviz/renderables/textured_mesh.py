@@ -34,7 +34,7 @@ class Material(object):
     """
     def __init__(self, ambient=(1.0, 1.0, 1.0), diffuse=(1.0, 1.0, 1.0),
                  specular=(0.1, 0.1, 0.1), Ns=2., texture=None,
-                 bump_map=None, mode="specular"):
+                 bump_map=None, mode="diffuse"):
         self.ambient = np.asarray(ambient, dtype=np.float32)
         self.diffuse = np.asarray(diffuse, dtype=np.float32)
         self.specular = np.asarray(specular, dtype=np.float32)
@@ -90,6 +90,7 @@ class TexturedMesh(MeshBase):
 
         self._texture = None
         self._bump_map = None
+        self._cull_back_face = True
 
     def init(self, ctx):
         self._prog = ctx.program(
@@ -138,6 +139,7 @@ class TexturedMesh(MeshBase):
                 uniform sampler2D bump_map;
                 uniform bool has_texture;
                 uniform bool has_bump_map;
+                uniform bool cull_back_face;
                 in vec3 v_vert;
                 in vec3 v_norm;
                 in vec2 v_uv;
@@ -151,10 +153,12 @@ class TexturedMesh(MeshBase):
                     vec3 l_norm = v_norm;
 
                     // Discard pixels where the normal is pointing away from the camera.
+                    if (cull_back_face) {
                     vec3 T = normalize(camera_position - v_vert);
-                    if (dot(T, l_norm) < 0) {
-                        discard;
-                        return;
+                        if (dot(T, l_norm) < 0) {
+                            discard;
+                            return;
+                        }
                     }
 
                     // fix colors based on the textures
@@ -175,11 +179,12 @@ class TexturedMesh(MeshBase):
 
                     // diffuse color
                     vec3 L = normalize(light - v_vert);
-                    // f_color.rgb += l_diffuse * clamp(dot(normalize(l_norm), L), 0.9, 1);
-                    f_color.rgb += l_diffuse * clamp(abs(dot(normalize(l_norm), L)), 0.5, 1) * 1.2;
+                    // The theory says the commented line however the one used looks better
+                    // f_color.rgb += l_diffuse * clamp(dot(normalize(l_norm), L), 0, 1);
+                    f_color.rgb += l_diffuse * clamp(abs(dot(normalize(l_norm), L)), 0.5, 1) * 1.4;
 
                     // specular color
-                    if (Ns > 100000) {
+                    if (Ns > 0) {
                         vec3 V = normalize(camera_position - v_vert);
                         vec3 H = normalize(L + V);
                         f_color.rgb += specular * pow(clamp(dot(normalize(l_norm), H), -1, 1), Ns);
@@ -203,6 +208,7 @@ class TexturedMesh(MeshBase):
         self.model_matrix = self._model_matrix
         self.offset = self._offset
         self.material = self._material
+        self.cull_back_face = self._cull_back_face
 
     def release(self):
         super(TexturedMesh, self).release()
@@ -262,6 +268,18 @@ class TexturedMesh(MeshBase):
             )
         else:
             self._prog["has_bump_map"] = False
+
+    @property
+    def cull_back_face(self):
+        """Completely discard triangles that are facing away from the
+        camera."""
+        return self._cull_back_face
+
+    @cull_back_face.setter
+    def cull_back_face(self, cull):
+        self._cull_back_face = bool(cull)
+        if self._prog:
+            self._prog["cull_back_face"] = self._cull_back_face
 
     def render(self):
         if self._texture is not None:
