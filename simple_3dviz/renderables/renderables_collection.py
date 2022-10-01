@@ -1,4 +1,5 @@
 from os import path
+from collections import defaultdict
 
 import numpy as np
 
@@ -19,18 +20,15 @@ class RenderablesCollectionReader:
         ]
         return renderables
 
-
     @staticmethod
-    def collect_meshes(lines, lines_faces, vertices, normals, uv):
-
-        def triangulate_faces(faces):
+    def unpack_face(face, vertices, normals, uv):
+        def triangulate_face(face):
             triangles = []
-            for f in faces:
-                if len(f) == 3:
-                    triangles.append(f)
-                else:
-                    for i in range(2, len(f)):
-                        triangles.append([f[0], f[i-1], f[i]])
+            if len(face) == 3:
+                triangles.extend(face)
+            else:
+                for i in range(2, len(face)):
+                    triangles.extend([face[0], face[i-1], face[i]])
             return triangles
 
         def extract_vertex(face):
@@ -42,37 +40,26 @@ class RenderablesCollectionReader:
         def extract_uv(face):
             return int(face.split("/")[1])-1
 
-        faces = np.array(triangulate_faces([
-            list(map(extract_vertex, l.strip().split()[1:]))
-            for l in lines_faces if l.startswith("f ")
-        ]))
+        faces = triangulate_face(face)
         try:
-            vertices = vertices[faces].reshape(-1, 3)
+            face_vertices = np.array(list(map(extract_vertex, faces)))
+            face_vertices = vertices[face_vertices].reshape(-1, 3)
         except IndexError:
-            vertices = None
+            face_vertices = None
 
-        # Collect all the vertex normals, namely lines starting with 'vn'
-        # followed by 3 floats and arrange the according to faces
         try:
-            faces = np.array(triangulate_faces([
-                list(map(extract_normal, l.strip().split()[1:]))
-                for l in lines_faces if l.startswith("f ")
-            ]))
-            normals = normals[faces].reshape(-1, 3)
+            face_normals = np.array(list(map(extract_normal, faces)))
+            face_normals = normals[face_normals].reshape(-1, 3)
         except IndexError:
-            normals = None
+            face_normals = None
 
-        # Collect all the texture coordinates, namely u, v [,w] coordinates
         try:
-            faces = np.array(triangulate_faces([
-                list(map(extract_uv, l.strip().split()[1:]))
-                for l in lines_faces if l.startswith("f ")
-            ]))
-            uv = uv[faces].reshape(-1, uv.shape[1])[:, :2]
+            face_uv = np.array(list(map(extract_uv, faces)))
+            face_uv = uv[face_uv].reshape(-1, uv.shape[1])[:, :2]
         except IndexError:
-            uv = None
+            face_uv = np.zeros((len(face_vertices), 2))
 
-        return vertices, normals, uv
+        return face_vertices, face_normals, face_uv
 
     @classmethod
     def from_file(cls, filepath, material_filepath, ext=None,
@@ -89,21 +76,6 @@ class RenderablesCollectionReader:
                           is an object
             color: A color to use if the material is neither given nor found
         """
-        def get_chunks_from_list(all_lines, queries):
-            chunks_per_query = []
-            for oi, oj in zip(queries, queries[1:]):
-                oi_ii = all_lines.index(oi)
-                oj_ii = all_lines.index(oj)
-                chunks_per_query.append((oi.strip(), oi_ii, oj_ii-1))
-            # In the end also add the indices for the last query
-            chunks_per_query.append((
-                queries[-1].strip(),
-                all_lines.index(queries[-1]),
-                len(all_lines) - 1
-            ))
-            return chunks_per_query
-        
-
         # Read the material_filepath and extract the info for all materials
         materials = read_material_file(
             material_filepath, ext=material_ext
@@ -138,84 +110,45 @@ class RenderablesCollectionReader:
         except IndexError:
             pass
 
-        renderables_params = []
-        # Collect all the objects, namely lines starting with "o"
-        objects = [l for l in lines if l.startswith("o ")]
 
-        # Based on the object names extract the line indices that correspond to
-        # each object
-        chunks_per_object = get_chunks_from_list(lines, objects)
+        material = None
+        vertices = defaultdict(list)
+        normals = defaultdict(list)
+        uv = defaultdict(list)
+        for line in lines:
+            if line.startswith("usemtl "):
+                material = line.strip().split()[-1]
 
-        # Now we can parse each object separately
-        for object_name, start, end in chunks_per_object:
-            rparams_per_object = []
-            # Get the lines that correspond to this object and drop the first
-            # lines that contains the object's name
-            lines_per_object = lines[start : end + 1][1:]
-
-            if len(lines_per_object) == 0:
-                continue
-
-            # For every object, we collect the materials that are associated
-            # with it
-            mts = [l for l in lines_per_object if l.startswith("usemtl")]
-            # In case only one material is defined for this object
-            if len(mts) == 1:
-                start_idx = lines_per_object.index(mts[0])
-                faces_lines = lines_per_object[start_idx + 1:]
-                vertices, normals, uv = cls.collect_meshes(
-                    lines_per_object, faces_lines,
-                    vertices_all, normals_all, uv_all
+            if line.startswith("f "):
+                fv, fn, fu = cls.unpack_face(
+                    line.split()[1:], vertices_all, normals_all, uv_all
                 )
-                if vertices is None:
-                    continue 
-                # Drop the initial usemtl from mts[0]
-                mtl = materials[mts[0].strip().split(" ")[-1]]
-                rparams_per_object.append({
-                    "vertices": vertices,
-                    "normals": normals,
-                    "uv": uv,
-                    "material": Material(
-                        ambient=mtl["ambient"],
-                        diffuse=mtl["diffuse"],
-                        specular=mtl["specular"],
-                        Ns=mtl["Ns"],
-                        texture=mtl["texture"],
-                        bump_map=mtl["bump"]
-                    )}
+                if fv is not None:
+                    vertices[material].extend(fv)
+                if fn is not None:
+                    normals[material].extend(fn)
+                if fu is not None:
+                    uv[material].extend(fu)
+
+        rparams = []
+        for k in vertices.keys():
+            material = None
+            if k in materials:
+                material = Material(
+                    ambient=materials[k]["ambient"],
+                    diffuse=materials[k]["diffuse"],
+                    specular=materials[k]["specular"],
+                    Ns=materials[k]["Ns"],
+                    texture=materials[k]["texture"],
+                    bump_map=materials[k]["bump"]
                 )
-            else:
-                chunks_per_material = get_chunks_from_list(lines_per_object, mts)
-                for vk, ms_start, ms_end in chunks_per_material:
-                    faces_lines = lines_per_object[ms_start + 1 : ms_end]
-                    vertices, normals, uv = cls.collect_meshes(
-                        lines_per_object, faces_lines,
-                        vertices_all, normals_all, uv_all
-                    )
-                    if vertices is None:
-                        continue 
-                    mtl = materials[vk.strip().split(" ")[-1]]
-                    rparams_per_object.append({
-                        "vertices": vertices,
-                        "normals": normals,
-                        "uv": uv,
-                        "material": Material(
-                            ambient=mtl["ambient"],
-                            diffuse=mtl["diffuse"],
-                            specular=mtl["specular"],
-                            Ns=mtl["Ns"],
-                            texture=mtl["texture"],
-                            bump_map=mtl["bump"]
-                        )}
-                    )
-            # Now that we have collected all renderable_params for each object
-            # we have to sort them based on which has a texture
-            # rparams_per_object = sorted(
-            #     rparams_per_object,
-            #     key=lambda d: d["material"].texture is not None,
-            #     reverse=True
-            # )
-            renderables_params.extend(rparams_per_object)
+            rparams.append({
+                "vertices": np.asarray(vertices[k]),
+                "normals": np.asarray(normals[k]) if len(normals[k]) > 0 else None,
+                "uv": np.asarray(uv[k]) if len(uv[k]) > 0 else None,
+                "material": material
+            })
 
         close_file(filepath, f)
-        return cls(renderables_params)
+
+        return cls(rparams)
