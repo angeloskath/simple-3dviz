@@ -32,7 +32,7 @@ class Material(object):
                   height, it contains the local displacement of the normal
                   vectors for implementing bump mapping
     """
-    def __init__(self, ambient=(0.4, 0.4, 0.4), diffuse=(0.4, 0.4, 0.4),
+    def __init__(self, ambient=(1.0, 1.0, 1.0), diffuse=(1.0, 1.0, 1.0),
                  specular=(0.1, 0.1, 0.1), Ns=2., texture=None,
                  bump_map=None, mode="specular"):
         self.ambient = np.asarray(ambient, dtype=np.float32)
@@ -113,13 +113,13 @@ class TexturedMesh(MeshBase):
 
                     t_pos = local_model * t_pos;
                     t_pos = t_pos + vec4(offset, 0);
-                    t_pos = mvp * t_pos;
-
+                    vec3 g_pos = vec3(t_pos);
                     t_nor = mat3(local_model) * t_nor;
                     t_nor = mat3(rotation) * t_nor;
+                    t_pos = mvp * t_pos;
 
                     // outputs
-                    v_vert = t_pos.xyz / t_pos.w;
+                    v_vert = g_pos;
                     v_norm = t_nor;
                     v_uv = in_uv;
                     gl_Position = t_pos;
@@ -150,6 +150,13 @@ class TexturedMesh(MeshBase):
                     vec3 l_diffuse = diffuse;
                     vec3 l_norm = v_norm;
 
+                    // Discard pixels where the normal is pointing away from the camera.
+                    vec3 T = normalize(camera_position - v_vert);
+                    if (dot(T, l_norm) < 0) {
+                        discard;
+                        return;
+                    }
+
                     // fix colors based on the textures
                     if (has_texture) {
                         vec4 texColor = texture2D(texture, v_uv);
@@ -168,10 +175,11 @@ class TexturedMesh(MeshBase):
 
                     // diffuse color
                     vec3 L = normalize(light - v_vert);
-                    f_color.rgb += l_diffuse * clamp(dot(normalize(l_norm), L), 0, 1);
+                    // f_color.rgb += l_diffuse * clamp(dot(normalize(l_norm), L), 0.9, 1);
+                    f_color.rgb += l_diffuse * clamp(abs(dot(normalize(l_norm), L)), 0.5, 1) * 1.2;
 
                     // specular color
-                    if (Ns > 0) {
+                    if (Ns > 100000) {
                         vec3 V = normalize(camera_position - v_vert);
                         vec3 H = normalize(L + V);
                         f_color.rgb += specular * pow(clamp(dot(normalize(l_norm), H), -1, 1), Ns);
@@ -323,7 +331,7 @@ class TexturedMesh(MeshBase):
                 Ns=mtl.Ns,
                 texture=mtl.texture,
                 bump_map=mtl.bump_map
-            )
+           )
 
         return cls(vertices, normals, uv, material)
 
@@ -334,4 +342,23 @@ class TexturedMesh(MeshBase):
         uv = uv[faces].reshape(-1, 2)
         normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
 
+        return cls(vertices, normals, uv, material)
+
+    @classmethod
+    def from_params(cls, params):
+        vertices = np.asarray(params["vertices"])
+
+        # Set a normal per triangle vertex
+        if params["normals"] is None:
+            normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
+        else:
+            normals = params["normals"]
+
+        # Set the uv coordinates
+        if params["uv"] is None:
+            uv = np.zeros((vertices.shape[0], 2), dtype=np.float32)
+        else:
+            uv = params["uv"]
+
+        material = params["material"]
         return cls(vertices, normals, uv, material)
