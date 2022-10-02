@@ -5,7 +5,7 @@ import numpy as np
 
 from ..renderables.material import Material
 from . import read_material_file
-from .material import empty_materials
+from .material import MaterialReader
 from .utils import get_file, close_file
 
 
@@ -47,7 +47,7 @@ class MultiMaterialObjReader:
         if material is not None and os.path.exists(material):
             return read_material_file(material, ext=material_ext)
         else:
-            return empty_materials()
+            return MaterialReader()
 
     def read_objects(self, filepath):
         try:

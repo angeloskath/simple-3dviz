@@ -60,3 +60,12 @@ class RenderableCollection(Renderable):
             b_min = np.minimum(b_min, b_min_hat)
             b_max = np.maximum(b_max, b_max_hat)
         return [b_min, b_max]
+
+    def to_unit_cube(self):
+        bbox = self.bbox
+        dims = bbox[1] - bbox[0]
+        translate = -(dims/2 + bbox[0])
+        scale = 1/dims.max()
+
+        for r in self.renderables:
+            r.affine_transform(R=np.eye(3)*scale, t=scale*translate)

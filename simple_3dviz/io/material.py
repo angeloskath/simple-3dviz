@@ -163,7 +163,3 @@ class MtlMaterialReader(MaterialReader):
         finally:
             if f is not None:
                 close_file(filename, f)
-
-
-def empty_materials():
-    return MaterialReader()
