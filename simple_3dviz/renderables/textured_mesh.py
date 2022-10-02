@@ -3,70 +3,10 @@ from os import path
 import numpy as np
 
 from ..io import read_mesh_file, read_material_file
-from ..utils import read_image
+from ..io.multi_mesh import MultiMaterialObjReader
+from .base import RenderableCollection
 from .mesh import MeshBase
-
-
-class Material(object):
-    """A struct object containing information about the material.
-
-    The supported materials have the following:
-
-    - An ambient color
-    - A diffuse lighting color (similar to `simple_3dviz.renderables.mesh.Mesh`)
-    - A specular lighting color
-    - A specular exponent for Phong lighting
-    - A texture map
-    - A bump map
-    - A lighting mode from the set {'constant', 'diffuse', 'specular'}
-
-    Arguments
-    ---------
-        ambient: array-like (r, g, b), float values between 0 and 1
-        diffuse: array-like (r, g, b), float values between 0 and 1
-        specular: array-like (r, g, b), float values between 0 and 1
-        Ns: float, the exponent used for Phong lighting
-        texture: array of uint8 with 3 or 4 channels and power of 2 width and
-                 height, it contains the colors to be used by a mesh
-        bump_map: array of uint8 with 3 channels and power of 2 width and
-                  height, it contains the local displacement of the normal
-                  vectors for implementing bump mapping
-    """
-    def __init__(self, ambient=(1.0, 1.0, 1.0), diffuse=(1.0, 1.0, 1.0),
-                 specular=(0.1, 0.1, 0.1), Ns=2., texture=None,
-                 bump_map=None, mode="diffuse"):
-        self.ambient = np.asarray(ambient, dtype=np.float32)
-        self.diffuse = np.asarray(diffuse, dtype=np.float32)
-        self.specular = np.asarray(specular, dtype=np.float32)
-        self.Ns = Ns
-        self.texture = texture
-        self.bump_map = bump_map
-        if mode == "constant":
-            self.diffuse[...] = 0
-            self.specular[...] = 0
-        elif mode == "diffuse":
-            self.specular[...] = 0
-
-    @property
-    def texture_flipped(self):
-        return self.texture[::-1]
-
-    @property
-    def bump_map_flipped(self):
-        return self.bump_map[::-1]
-
-    @classmethod
-    def with_texture_image(cls, texture_path, ambient=(0.4, 0.4, 0.4),
-                           diffuse=(0.4, 0.4, 0.4), specular=(0.1, 0.1, 0.1),
-                           Ns=2., mode="specular"):
-        return cls(
-            ambient=ambient,
-            diffuse=diffuse,
-            specular=specular,
-            Ns=Ns,
-            texture=read_image(texture_path),
-            mode=mode
-        )
+from .material import Material
 
 
 class TexturedMesh(MeshBase):
@@ -82,7 +22,17 @@ class TexturedMesh(MeshBase):
         material: simple_3dviz.renderables.textured_mesh.Material object
     """
     def __init__(self, vertices, normals, uv, material):
+        vertices = np.asarray(vertices)
+
+        # If the normals are not provided compute them from the faces
+        if normals is None:
+            normals = np.repeat(self._triangle_normals(vertices), 3, axis=0)
+
         super(TexturedMesh, self).__init__(vertices, normals)
+
+        # If the uv coordinates are not provided set them to 0
+        if uv is None:
+            uv = np.zeros((vertices.shape[0], 2), dtype=np.float32)
 
         self._uv = np.asarray(uv)
         assert(self._uv.shape == (len(self._vertices), 2))
@@ -303,6 +253,9 @@ class TexturedMesh(MeshBase):
                           is an object
             color: A color to use if the material is neither given nor found
         """
+        if isinstance(filepath, str) and filepath.endswith(".obj") or ext == ".obj":
+            return cls.from_obj_file(filepath, material_filepath, material_ext, color)
+
         # Read the mesh
         mesh = read_mesh_file(filepath, ext=ext)
 
@@ -362,22 +315,13 @@ class TexturedMesh(MeshBase):
 
         return cls(vertices, normals, uv, material)
 
+
     @classmethod
-    def from_params(cls, params):
-        vertices = np.asarray(params["vertices"])
-
-        # Set a normal per triangle vertex
-        if params["normals"] is None:
-            normals = np.repeat(cls._triangle_normals(vertices), 3, axis=0)
+    def from_obj_file(cls, filepath, material_filepath=None, material_ext=None,
+                      color=(0.5, 0.5, 0.5)):
+        reader = MultiMaterialObjReader(filepath, material_filepath, material_ext, color)
+        renderables = [cls(**object_args) for object_args in reader.objects]
+        if len(renderables) == 1:
+            return renderables[0]
         else:
-            normals = params["normals"]
-
-        # Set the uv coordinates
-        if params["uv"] is None:
-            uv = np.zeros((vertices.shape[0], 2), dtype=np.float32)
-        else:
-            uv = params["uv"]
-
-        material = params["material"]
-
-        return cls(vertices, normals, uv, material)
+            return RenderableCollection(renderables)

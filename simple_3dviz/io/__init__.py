@@ -2,8 +2,8 @@
 
 from os import path
 
-from .mesh import ObjMeshReader, OffMeshReader, PlyMeshReader, StlMeshReader
 from .material import MtlMaterialReader
+from .mesh import ObjMeshReader, OffMeshReader, PlyMeshReader, StlMeshReader
 
 
 def read_mesh_file(filename, ext=None):
@@ -29,3 +29,5 @@ def read_material_file(filename, ext=None):
         }[ext.lower()](filename)
     except KeyError as e:
         raise ValueError("{} material file extension is not supported".format(ext))
+
+

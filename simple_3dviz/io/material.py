@@ -21,9 +21,11 @@ class MaterialReader(object):
     def read(self, filename):
         raise NotImplementedError()
 
-
     def set_material(self, name):
         self._current = name
+
+    def has_material(self, name):
+        return name in self._materials
 
     @property
     def material_names(self):
