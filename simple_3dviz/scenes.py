@@ -117,6 +117,7 @@ class Scene(BaseScene):
         self._rotation = Matrix44.identity().astype(np.float32)
         self._up_vector = Vector3([0, 0, 1], dtype="float32")
         self._light = Vector3([-0.5, -0.8, -2], dtype="float32")
+        self._mv = None
 
         self._uniforms = dict(
             # raw uniforms
@@ -142,13 +143,34 @@ class Scene(BaseScene):
     def vm(self):
         return self.mv.inverse
 
+    @vm.setter
+    def vm(self, _vm):
+        if _vm is None:
+            self.mv = _vm
+        else:
+            _vm = Matrix44(_vm)
+            self.mv = _vm.inverse
+
     @property
     def mv(self):
-        return (Matrix44.look_at(
-            self._camera_position,
-            self._camera_target,
-            self._up_vector
-        ) * self._rotation).astype(np.float32)
+        if self._mv is None:
+            return (Matrix44.look_at(
+                self._camera_position,
+                self._camera_target,
+                self._up_vector
+            ) * self._rotation).astype(np.float32)
+        else:
+            return self._mv.copy()
+
+    @mv.setter
+    def mv(self, _mv):
+        if _mv is None:
+            self._mv = _mv
+        else:
+            assert _mv.shape == (4, 4)
+            self._mv = Matrix44(_mv.astype(np.float32).copy())
+
+        self._update_uniforms()
 
     @property
     def mvp(self):

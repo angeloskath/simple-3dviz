@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Renderable(object):
     """Represent something that can be rendered."""
     def init(self, ctx):
@@ -25,3 +28,35 @@ class Renderable(object):
         """Render whatever this represents."""
         raise NotImplementedError()
 
+
+class RenderableCollection(Renderable):
+    """Make many renderables behave like a single renderable."""
+
+    def __init__(self, renderables):
+        self.renderables = renderables
+
+    def init(self, ctx):
+        for r in self.renderables:
+            r.init(ctx)
+
+    def release(self):
+        for r in self.renderables:
+            r.release()
+
+    def update_uniforms(self, uniforms):
+        for r in self.renderables:
+            r.update_uniforms(uniforms)
+
+    def render(self):
+        for r in self.renderables:
+            r.render()
+
+    @property
+    def bbox(self):
+        b_min = np.array([float("inf")]*3)
+        b_max = -b_min
+        for r in self.renderables:
+            b_min_hat, b_max_hat = r.bbox
+            b_min = np.minimum(b_min, b_min_hat)
+            b_max = np.maximum(b_max, b_max_hat)
+        return [b_min, b_max]
