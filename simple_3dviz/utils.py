@@ -21,9 +21,12 @@ try:
 
     def read_image(path):
         img = cv2.imread(path, -1)
+        if len(img.shape) == 2:
+            img = img[..., None]
         channels = img.shape[-1]
         if channels == 1:
             return img
+
 
         # swap channels from bgr to rgb
         image_data = [img[:, :, i] for i in range(channels)]
