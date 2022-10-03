@@ -2,6 +2,7 @@ simple-3dviz
 ---------------
 
 [![PyPI version](https://badge.fury.io/py/simple-3dviz.svg)](https://badge.fury.io/py/simple-3dviz)
+[![PyPI downloads](https://img.shields.io/pypi/dm/simple-3dviz.svg)](https://pypistats.org/packages/simple-3dviz)
 
 [simple-3dviz](http://simple-3dviz.com) provides a set of simple and reusable tools for visualizing 3D
 data using Python and OpenGL. The goal of this library is to provide an easy
@@ -15,6 +16,9 @@ such as meshes, point clouds, voxel grids, a set of geometric primitives etc.
 ![Voxel Grid](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/rotating_voxels.gif)
 ![Voxel Grid and Spheres](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/rotating_voxels_spheres.gif)
 ![Superquadrics](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/sqs.gif)
+![TexturedMesh](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/motorbikes_1.gif)
+![TexturedMesh](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/motorbikes_2.gif)
+![TexturedMesh](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/motorbikes_3.gif)
 
 Key features include:
 - Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html), [binary/ASCII STL](https://en.wikipedia.org/wiki/STL_(file_format)) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
