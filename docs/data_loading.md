@@ -86,7 +86,7 @@ or using a set of vertices and normals.
 
 ## Creating Textured Meshes
 
-simple-3dviz has limited support for textures as well. To load a mesh with a
+simple-3dviz also supports rendering meshes with textures. To load a mesh with a
 texture/material you can use the `TexturedMesh` class similar to the way you
 would use `Mesh`.
 
@@ -128,6 +128,93 @@ would use `Mesh`.
          alt="Original Elefante model" style="width:49%"/>
     <img src="../img/elefante_mtl.png"
          alt="Elefante model with custom material" style="width:49%"/>
+</div>
+
+Note that is is also possible to render textured meshes with multiple
+materials. You can again load a textured mesh with multiple materials using the
+`TexturedMesh` class as we did previously. In the following example you can see
+how you can render a 3D mesh with multiple materials, render it from various
+view points and save the animation as a gif.
+
+
+```python
+>>> from simple_3dviz.behaviours.io import SaveGif
+>>> from simple_3dviz.behaviours.movements import CameraTrajectory
+>>> from simple_3dviz.behaviours.trajectory import Circle
+>>> from simple_3dviz.renderables import TexturedMesh
+>>> from simple_3dviz.utils import render, save_frame
+
+# The 3D model together with its material is from ShapeNet
+>>> rr1 = TexturedMesh.from_file("/tmp/motorbikes/motorbike_1.obj")
+# Transfer the mesh to the unit cube
+>>> rr1.to_unit_cube()
+# Scale and transfer the mesh within a unit cube
+>>> render(
+...    rr1,
+...    [
+...        CameraTrajectory(
+...            Circle((0, 0, 0), (0.0, 0.60, 1.4), (0, -1, 0)),
+...            speed=1/180
+...        ),
+...        SaveGif("/tmp/motorbike_1.gif")
+...    ],
+...    up_vector=(0, 1, 0),
+...    size=(1200, 1200),
+...    camera_position=(0.0, 0.60, 1.4),
+...    light=(0,5,0)
+... )
+
+# The 3D model together with its material is from ShapeNet
+>>> rr2 = TexturedMesh.from_file("/tmp/motorbikes/motorbike_2.obj")
+# Render the scene and save the animation as a gif
+>>> render(
+...    rr2,
+...    [
+...        CameraTrajectory(
+...            Circle((0, 0, 0), (0.0, 0.4, 1.0), (0, -1, 0)),
+...            speed=1/180
+...        ),
+...        SaveGif("/tmp/motorbike_2.gif")
+...    ],
+...    180,
+...    camera_position=(0.0, 0.4, 1.0),
+...    light=(0,)*3,
+...    background=(1,)*4,
+...    up_vector=(0, 1, 0)
+...)
+
+# It is possible to turn off the culling of faces that are pointing away
+# from the camera, which by default is set to true
+>>> if hasattr(rr2, "renderables"):
+...     for r in rr2.renderables:
+...         r.cull_back_face = False
+... else:
+...     rr2.cull_back_face = False
+
+# Render the scene and save the animation as a gif
+>>> render(
+...    rr2,
+...    [
+...        CameraTrajectory(
+...            Circle((0, 0, 0), (0.0, 0.4, 1.0), (0, -1, 0)),
+...            speed=1/180
+...        ),
+...        SaveGif("/tmp/motorbike_3.gif")
+...    ],
+...    180,
+...    camera_position=(0.0, 0.4, 1.0),
+...    light=(0,)*3,
+...    background=(1,)*4,
+...    up_vector=(0, 1, 0)
+...)
+```
+<div style="text-align: center;">
+    <img src="../img/motorbike_1.gif"
+         alt="Motorbike model from ShapeNet" style="width:31%"/>
+    <img src="../img/motorbike_2.gif"
+         alt="Motorbike model from ShapeNet" style="width:31%"/>
+    <img src="../img/motorbike_3.gif"
+         alt="Motorbike model from ShapeNet" style="width:31%"/>
 </div>
 
 ## Creating Voxel Grids

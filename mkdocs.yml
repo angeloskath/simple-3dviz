@@ -4,7 +4,7 @@ repo_url: https://github.com/angeloskath/simple-3dviz/
 theme: readthedocs
 site_dir: output
 google_analytics: ['UA-162314451-1', 'simple-3dviz.com']
-pages:
+nav:
 - Home: 'index.md'
 - User Guide:
   - Loading and Manipulating Data: 'data_loading.md'

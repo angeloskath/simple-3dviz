@@ -16,9 +16,9 @@ such as meshes, point clouds, voxel grids, a set of geometric primitives etc.
 ![Voxel Grid](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/rotating_voxels.gif)
 ![Voxel Grid and Spheres](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/rotating_voxels_spheres.gif)
 ![Superquadrics](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/sqs.gif)
-![TexturedMesh](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/motorbikes_1.gif)
-![TexturedMesh](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/motorbikes_2.gif)
-![TexturedMesh](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/motorbikes_3.gif)
+![TexturedMesh Motorbike1](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/motorbikes_1.gif)
+![TexturedMesh Motorbike2](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/motorbikes_2.gif)
+![TexturedMesh Motorbike3](https://raw.githubusercontent.com/angeloskath/simple-3dviz/master/models/motorbikes_3.gif)
 
 Key features include:
 - Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html), [binary/ASCII STL](https://en.wikipedia.org/wiki/STL_(file_format)) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
