@@ -41,7 +41,10 @@ except ImportError:
         Image.fromarray(frame).save(path)
 
     def read_image(path):
-        return np.asarray(Image.open(path))
+        img = np.asarray(Image.open(path))
+        if len(img.shape) == 2:
+            img = img[..., None]
+        return img
 
 
 def render(renderables, behaviours, n_frames, size=(512, 512),
