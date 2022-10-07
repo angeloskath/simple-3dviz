@@ -163,6 +163,17 @@ class ObjMeshReader(MeshReader):
             ]))
             self._vertices = vertices[faces].reshape(-1, 3)
 
+            # Collect all the color information if they are provided, namely x,
+            # y, z, R, G, B
+            colors = np.array([
+                list(map(float, l.strip().split()[4:7]))
+                for l in lines if l.startswith("v ")
+            ], dtype=np.float32)
+            if colors.shape[-1] == 3:
+                self._colors = colors[faces].reshape(-1, 3)
+            else:
+                pass
+
             # Collect all the vertex normals, namely lines starting with 'vn'
             # followed by 3 floats and arrange the according to faces
             try:
