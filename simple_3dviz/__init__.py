@@ -7,7 +7,7 @@ __description__ = "simple-3dviz is a simple visualization library for 3D "
 "data using Python and OpenGL."
 __keywords__ = "graphics geometry 3D"
 __license__ = "MIT"
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 from .renderables import Mesh, TexturedMesh, Spherecloud, Lines
 from .scenes import Scene
