@@ -51,6 +51,15 @@ class RenderableCollection(Renderable):
         for r in self.renderables:
             r.render()
 
+    def scale(self, s):
+        for r in self.renderables:
+            r.scale(s)
+    
+    def affine_transform(self, R=np.eye(3), t=np.zeros(3)):
+        for r in self.renderables:
+            r.affine_transform(R, t)
+
+
     @property
     def bbox(self):
         b_min = np.array([float("inf")]*3)
