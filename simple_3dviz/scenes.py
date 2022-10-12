@@ -183,6 +183,7 @@ class Scene(BaseScene):
     @light.setter
     def light(self, l):
         self._light[...] = l
+        self._update_uniforms()
 
     @property
     def camera_matrix(self):

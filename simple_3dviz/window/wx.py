@@ -2,22 +2,19 @@ import moderngl
 import numpy as np
 import wx
 import wx.glcanvas
+from pyrr import Matrix44
 
 from ..behaviours import Behaviour
 from ..scenes import Scene
 from .base import BaseWindow
 
 class Window(BaseWindow):
-    _FRAME_STYLE = wx.DEFAULT_FRAME_STYLE & ~(
-        wx.RESIZE_BORDER | wx.MAXIMIZE_BOX
-    )
-
     class _Frame(wx.Frame):
         """A simple frame for our wxWidgets app."""
         def __init__(self, window, size, title):
             super(Window._Frame, self).__init__(
                 None,
-                style=Window._FRAME_STYLE
+                style=wx.DEFAULT_FRAME_STYLE
             )
             self._window = window
             self.SetTitle(title)
@@ -58,13 +55,23 @@ class Window(BaseWindow):
             self.Bind(wx.EVT_MOUSE_EVENTS, self._on_mouse)
             self.Bind(wx.EVT_KEY_DOWN, self._on_keyboard)
             self.Bind(wx.EVT_KEY_UP, self._on_keyboard)
+            self.Bind(wx.EVT_SIZE, self._on_size)
+
+        def _on_size(self, event):
+            if self._mgl_context is not None:
+                W, H = event.GetSize()
+                self._mgl_context.viewport = (0, 0, W, H)
+                self._window._scene.camera_matrix = (
+                    Matrix44.perspective_projection(45., W/H, 0.1, 1000)
+                )
 
         def _get_frame(self):
+            W, H = self.GetClientSize()
             framebuffer = self._mgl_context.detect_framebuffer()
             return np.frombuffer(
-                framebuffer.read(components=4),
+                framebuffer.read(viewport=self._mgl_context.viewport, components=4),
                 dtype=np.uint8
-            ).reshape(*(framebuffer.size + (4,)))[::-1]
+            ).reshape((H, W, 4))[::-1]
 
         def _on_close(self, event):
             self._ticker.Stop()
