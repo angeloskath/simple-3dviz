@@ -2,11 +2,15 @@
 information on how to use the script."""
 
 import argparse
+from os import path
+from tempfile import gettempdir
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from .. import Mesh, Lines
+from ..behaviours.misc import LightToCamera
+from ..behaviours.keyboard import SnapshotOnKey
 from ..window import show
 
 
@@ -45,7 +49,7 @@ def get_colormap(cmap, log_colors):
 
 
 def get_function(func, xlim, ylim, n, cmap="viridis", log_colors=False):
-    x = np.linspace(xlim[0], xlim[1], n)
+    x = np.linspace(xlim[1], xlim[0], n)
     y = np.linspace(ylim[0], ylim[1], n)
     X, Y = np.meshgrid(x, y)
     Z = eval(func, dict(x=X, y=Y, np=np))
@@ -148,6 +152,11 @@ def main(argv=None):
         dest="axes",
         help="Do not show the axes"
     )
+    parser.add_argument(
+        "--save_frame",
+        default=path.join(gettempdir(), "frame_{:03d}.png"),
+        help="The location to save the snapshot frame"
+    )
 
     args = parser.parse_args(argv)
 
@@ -158,5 +167,9 @@ def main(argv=None):
         [mesh] + ([axes] if args.axes else []),
         size=args.size, background=args.background, title="Func Viewer",
         camera_position=args.camera_position, camera_target=args.camera_target,
-        up_vector=args.up, light=args.light
+        up_vector=args.up, light=args.light,
+        behaviours=[
+            LightToCamera(),
+            SnapshotOnKey(path=args.save_frame, keys={"<ctrl>", "S"}),
+        ]
     )
