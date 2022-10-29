@@ -73,6 +73,7 @@ def setup_package():
             "Programming Language :: Python :: 3",
         ],
         packages=find_packages(exclude=["docs", "tests", "scripts"]),
+        package_data={"simple_3dviz.data_files": ["camera.obj"]},
         install_requires=get_install_requirements(),
         ext_modules=get_extensions(),
         entry_points={
