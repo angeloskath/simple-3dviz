@@ -4,4 +4,4 @@ from .base import Renderable
 from .lines import Lines
 from .mesh import Mesh
 from .spherecloud import Spherecloud
-from .textured_mesh import TexturedMesh
+from .textured_mesh import Image, TexturedMesh
