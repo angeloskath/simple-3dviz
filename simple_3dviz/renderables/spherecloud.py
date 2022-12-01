@@ -6,24 +6,30 @@ from .base import Renderable
 
 class Spherecloud(Renderable):
     def __init__(self, centers, colors=(0.3, 0.3, 0.3), sizes=(0.02)):
-        self._centers = np.asarray(centers)
-        self._colors = np.asarray(colors)
-        self._sizes = np.asarray(sizes)
-
-        N = len(self._centers)
-        if len(self._colors.shape) == 1:
-            if self._colors.size == 3:
-                self._colors = np.array(self._colors.tolist() + [1])
-            self._colors = self._colors[np.newaxis].repeat(N, axis=0)
-        elif self._colors.shape[1] == 3:
-            self._colors = np.hstack([self._colors, np.ones((N, 1))])
-
-        if len(self._sizes.shape) == 0:
-            self._sizes = np.ones(N)*self._sizes
+        self._centers, self._colors, self._sizes = \
+            self._parse_centers_colors_and_sizes(centers, colors, sizes)
 
         self._prog = None
         self._vbo = None
         self._vao = None
+
+    def _parse_centers_colors_and_sizes(self, centers, colors, sizes):
+        centers = np.asarray(centers)
+        colors = np.asarray(colors)
+        sizes = np.asarray(sizes)
+
+        N = len(centers)
+        if len(colors.shape) == 1:
+            if colors.size == 3:
+                colors = np.array(colors.tolist() + [1])
+            colors = colors[np.newaxis].repeat(N, axis=0)
+        elif colors.shape[1] == 3:
+            colors = np.hstack([colors, np.ones((N, 1))])
+
+        if len(sizes.shape) == 0:
+            sizes = np.ones(N) * sizes
+
+        return centers, colors, sizes
 
     @property
     def packed_parameters(self):
@@ -152,6 +158,12 @@ class Spherecloud(Renderable):
             if k in ["light", "mvp", "vm"]:
                 self._prog[k].write(v.tobytes())
 
+    def _update_vbo(self):
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._centers, self._colors, self._sizes
+            ]).astype(np.float32).tobytes())
+
     @property
     def bbox(self):
         """The axis aligned bounding box of all the vertices as two
@@ -176,3 +188,12 @@ class Spherecloud(Renderable):
         self._centers /= dims.max()
         if self._vbo is not None:
             self._vbo.write(self.packed_parameters.tobytes())
+
+    def append(self, centers, colors=(0.3, 0.3, 0.3), sizes=(0.02)):
+        centers, colors, sizes = self._parse_centers_colors_and_sizes(
+            centers, colors, sizes
+        )
+        self._centers = np.vstack([self._centers, centers])
+        self._colors = np.vstack([self._colors, colors])
+        self._sizes = np.vstack([self._sizes[:, None], sizes[:, None]])[:, 0]
+        self._update_vbo()

@@ -16,21 +16,28 @@ class Lines(Renderable):
         width: float indicating the width of the line
     """
     def __init__(self, points, colors=(0.3, 0.3, 0.3, 1.0), width=0.4):
-        self._points = np.asarray(points)
-        self._colors = np.asarray(colors)
+        self._points, self._colors = self._parse_points_and_colors(
+            points, colors
+        )
         self._width = width
-
-        N = len(self._points)
-        if len(self._colors.shape) == 1:
-            if self._colors.size == 3:
-                self._colors = np.array(self._colors.tolist() + [1])
-            self._colors = self._colors[np.newaxis].repeat(N, axis=0)
-        elif self._colors.shape[1] == 3:
-            self._colors = np.hstack([self._colors, np.ones((N, 1))])
 
         self._prog = None
         self._vbo = None
         self._vao = None
+
+    def _parse_points_and_colors(self, points, colors):
+        points = np.asarray(points)
+        colors = np.asarray(colors)
+
+        N = len(points)
+        if len(colors.shape) == 1:
+            if colors.size == 3:
+                colors = np.array(colors.tolist() + [1])
+            colors = colors[np.newaxis].repeat(N, axis=0)
+        elif colors.shape[1] == 3:
+            colors = np.hstack([colors, np.ones((N, 1))])
+
+        return points, colors
 
     def init(self, ctx):
         self._prog = ctx.program(
@@ -119,6 +126,12 @@ class Lines(Renderable):
                 self._prog[k].write(v.tobytes())
         self._prog["width"].value = self._width
 
+    def _update_vbo(self):
+        if self._vbo is not None:
+            self._vbo.write(np.hstack([
+                self._points, self._colors
+            ]).astype(np.float32).tobytes())
+
     @property
     def bbox(self):
         """The axis aligned bounding box of all the vertices as two
@@ -134,10 +147,13 @@ class Lines(Renderable):
         dims = bbox[1] - bbox[0]
         self._points -= dims/2 + bbox[0]
         self._points /= dims.max()
-        if self._vbo is not None:
-            self._vbo.write(np.hstack([
-                self._points, self._colors
-            ]).astype(np.float32).tobytes())
+        self._update_vbo()
+
+    def append(self, points, colors=(0.3, 0.3, 0.3)):
+        points, colors = self._parse_points_and_colors(points, colors)
+        self._points = np.vstack([self._points, points])
+        self._colors = np.vstack([self._colors, colors])
+        self._update_vbo()
 
     @classmethod
     def from_voxel_grid(cls, voxels, colors=(0.1, 0.1, 0.1), width=0.001,
