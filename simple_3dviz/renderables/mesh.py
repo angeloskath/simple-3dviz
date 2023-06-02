@@ -616,8 +616,9 @@ class Mesh(MeshBase):
         return cls.from_voxel_grid(voxelgrid, colors=colors, bbox=bbox)
 
     @classmethod
-    def from_superquadrics(cls, alpha, epsilon, translation, rotation, colors,
-                           offset=[0, 0, 0.], vertex_count=10000):
+    def from_superquadrics(cls, alpha, epsilon, translation, rotation,
+                           colors=(0.3, 0.3, 0.3), offset=[0, 0, 0.],
+                           vertex_count=10000):
         """Create Superquadrics.
 
         Arguments

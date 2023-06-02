@@ -168,6 +168,28 @@ class Spherecloud(Renderable):
         if self._vbo is not None:
             self._vbo.write(self.packed_parameters.tobytes())
 
+    def affine_transform(self, R=np.eye(3), t=np.zeros(3)):
+        """Rotate and translate the vertices and then update the gpu buffer.
+
+        Given the vertices v \in R^{Nx3} this function implements
+
+            v' = v @ R + t
+
+        Arguments
+        ---------
+            R: array (3, 3), the 3x3 rotation matrix
+            t: array (3,), the translation vector
+        """
+        self._centers = self._centers.dot(R) + t
+        if self._vbo is not None:
+            self._vbo.write(self.packed_parameters.tobytes())
+
+    def translate(self, t):
+        """Translate all the vertices with a vector t."""
+        self._centers += t
+        if self._vbo is not None:
+            self._vbo.write(self.packed_parameters.tobytes())
+
     def to_unit_cube(self):
         """Transform the mesh such that it fits in the 0 centered unit cube."""
         bbox = self.bbox
