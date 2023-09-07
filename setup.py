@@ -43,7 +43,8 @@ def get_install_requirements():
         "numpy",
         "pyrr",
         "plyfile",
-        "Pillow"
+        "Pillow",
+        "pygame"
     ]
 
 

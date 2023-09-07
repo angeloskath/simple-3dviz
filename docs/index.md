@@ -24,7 +24,7 @@ simple-3dviz has the following dependencies:
 - [plyfile](https://github.com/dranjan/python-plyfile)
 * [pyrr](https://github.com/adamlwgriffiths/Pyrr)
 * [PIL](https://pillow.readthedocs.io/en/stable/index.html) or [OpenCV](https://opencv.org/) (if you want to store the rendering to image files)
-* [wxpython](https://wxpython.org/) (if you want to have a GUI)
+* [pygame](https://pygame.org/) (for the GUI)
 
 The easiest way to install it is from PyPI with:
 

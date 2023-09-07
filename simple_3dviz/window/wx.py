@@ -1,3 +1,5 @@
+import warnings
+
 import moderngl
 import numpy as np
 import wx
@@ -7,6 +9,14 @@ from pyrr import Matrix44
 from ..behaviours import Behaviour
 from ..scenes import Scene
 from .base import BaseWindow
+
+
+warnings.warn(
+    ("Simple-3dviz support for wxPython windows is deprecated and will "
+     "be removed in a future release."),
+    DeprecationWarning
+)
+
 
 class Window(BaseWindow):
     class _Frame(wx.Frame):

@@ -1,9 +1,20 @@
 """Create a window with an attached scene that is rendered in real time."""
 
+Window = None
+
 try:
-    from .wx import Window
+    from .pygame import Window
 except ImportError:
-    raise ImportError("No supported gui library was found. Install wxPython.")
+    pass
+
+if Window is None:
+    try:
+        from .wx import Window
+    except ImportError:
+        pass
+
+if Window is None:
+    raise ImportError("No supported gui library was found. Install pygame.")
 
 
 from ..renderables import Renderable
