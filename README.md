@@ -22,7 +22,7 @@ such as meshes, point clouds, voxel grids, a set of geometric primitives etc.
 
 Key features include:
 - Manipulation of meshes from [Wavefront OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file), [ASCII OFF](https://people.sc.fsu.edu/~jburkardt/data/off/off.html), [binary/ASCII STL](https://en.wikipedia.org/wiki/STL_(file_format)) and [binary/ASCII PLY](http://paulbourke.net/dataformats/ply/).
-- A lightweight and easy-to-use scene viewer using [wxpython](https://wxpython.org/) with support for animation and storing images.
+- A lightweight and easy-to-use scene viewer using [pygame](https://www.pygame.org/news) with support for animation and storing images.
 - An offscreen rendering module.
 - Helper functions to render pointclouds, lines, voxels and superquadrics.
 
@@ -45,7 +45,7 @@ The dependencies of `simple-3dviz` are listed below:
 - [plyfile](https://github.com/dranjan/python-plyfile)
 - [pyrr](https://github.com/adamlwgriffiths/Pyrr)
 - [PIL](https://pillow.readthedocs.io/en/stable/index.html) or [OpenCV](https://opencv.org/) (if you want to store the rendering to image files)
-- [wxpython](https://wxpython.org/) (if you want to have a GUI)
+- [pygame](https://www.pygame.org/news) (if you want to have a GUI)
 
 ## Quick Start
 
@@ -66,7 +66,7 @@ m = Mesh.from_file("models/baby_yoda.stl")
 # You can easily extract the mesh vertices and faces
 vertices, faces = m.to_points_and_faces()
 
-# Preview the mesh in an OpenGL window if you installed wxpython with pip
+# Preview the mesh in an OpenGL window
 # Note that you can specify the size (size) and the background color
 # (background) of the rendered window as well as the position of the camera in
 # the scene (camera_position), its viewing direction (camera_target) and the 3d
